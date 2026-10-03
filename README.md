@@ -74,7 +74,8 @@ Additional documentation will be added progressively as the corresponding engine
 
 ### Operations
 
-Documentation related to CI/CD, deployment, monitoring, observability, and incident handling.
+- [Operations](docs/operations/README.md)
+  Defines the CI quality gate and operational practices.
 
 ### Testing
 
