@@ -13,11 +13,9 @@ enum AppRoute {
   final String name;
 }
 
-final GoRouter appRouter = createAppRouter();
-
-GoRouter createAppRouter() {
+GoRouter createAppRouter({String initialLocation = '/'}) {
   return GoRouter(
-    initialLocation: AppRoute.bootstrap.path,
+    initialLocation: initialLocation,
     routes: [
       GoRoute(
         path: AppRoute.bootstrap.path,
@@ -38,8 +36,7 @@ GoRouter createAppRouter() {
       GoRoute(
         path: AppRoute.transactions.path,
         name: AppRoute.transactions.name,
-        builder: (_, _) =>
-            const RouterPlaceholderScreen(title: 'Transactions'),
+        builder: (_, _) => const RouterPlaceholderScreen(title: 'Transactions'),
       ),
     ],
   );
