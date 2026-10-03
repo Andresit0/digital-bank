@@ -27,3 +27,27 @@ Run the application:
 ```bash
 flutter run
 ```
+
+## Engineering Approach
+
+The project is developed incrementally using a requirement-driven and decision-oriented approach.
+
+The implementation follows this progression:
+
+1. Technical requirements
+2. MVP scope and prioritization
+3. Application architecture
+4. Application foundation
+5. Core product features
+6. Resilience and degraded-state handling
+7. Personalization and dynamic experiences
+8. External service integration
+9. Quality and test consolidation
+10. Observability and operations
+11. Final validation and documentation
+
+Development follows Specification-Driven Development (SDD) and Test-Driven Development (TDD), with AI used as an engineering assistant throughout the development lifecycle.
+
+Each significant change is specified, implemented, tested, and validated before being integrated into the trunk.
+
+Architectural decisions and significant technical trade-offs are documented as Architecture Decision Records (ADRs).
