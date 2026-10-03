@@ -51,3 +51,25 @@ Development follows Specification-Driven Development (SDD) and Test-Driven Devel
 Each significant change is specified, implemented, tested, and validated before being integrated into the trunk.
 
 Architectural decisions and significant technical trade-offs are documented as Architecture Decision Records (ADRs).
+
+## Documentation
+
+### Product
+
+Documentation related to requirements, scope, prioritization, assumptions, and product decisions.
+
+### Architecture
+
+Documentation related to application architecture, technical decisions, dependencies, scalability, and system flows.
+
+### Operations
+
+Documentation related to CI/CD, deployment, monitoring, observability, and incident handling.
+
+### Testing
+
+Documentation related to the testing strategy and quality validation.
+
+### AI
+
+Documentation related to AI-assisted development, usage, impact, and validation.
