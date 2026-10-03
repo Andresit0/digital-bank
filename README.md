@@ -66,7 +66,11 @@ Documentation will be added progressively as the corresponding engineering decis
 
 ### Architecture
 
-Documentation related to application architecture, technical decisions, dependencies, scalability, and system flows.
+- [Architecture](docs/architecture/README.md)
+  Defines the application structure, dependency boundaries, SDD/TDD workflow,
+  and initial architectural decisions.
+
+Additional documentation will be added progressively as the corresponding engineering decisions and implementation work.
 
 ### Operations
 
