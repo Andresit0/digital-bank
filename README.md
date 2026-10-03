@@ -56,7 +56,10 @@ Architectural decisions and significant technical trade-offs are documented as A
 
 ### Product
 
-Documentation related to requirements, scope, prioritization, assumptions, and product decisions.
+- [Requirements Traceability](docs/product/requirements-traceability.md)  
+  Maps the technical assessment requirements to product scope, architecture decisions, implementation, tests, documentation, and verification evidence.
+
+Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
 ### Architecture
 
