@@ -299,7 +299,11 @@ EC-002 Engineering Quality
 
 ## 11. Initial Product Scope
 
-The primary MVP journey derived from the requirements is:
+The project-level implementation scope is defined and prioritized in:
+
+`docs/product/scope-and-prioritization.md`
+
+The primary MVP journey is:
 
 ```text
 Onboarding
@@ -311,39 +315,22 @@ Home / Dashboard
 Account Summary
     ↓
 Transaction History
+    ↓
+Transaction Detail
 ```
 
-Cross-cutting capabilities:
+The scope is organized into:
 
-```text
-                  ┌── Personalization
-                  │
-                  ├── External Service
-                  │
-Core Journey ─────┼── Push Notifications
-                  │
-                  ├── Resilience / Degraded Connectivity
-                  │
-                  ├── Accessibility
-                  │
-                  └── Observability
-```
+- P0 — Core MVP: primary customer journey, resilience, core quality, security baseline, and critical verification.
+- P1 — Required Secondary Capabilities: required assessment capabilities implemented after the core journey.
+- Deferred: capabilities intentionally excluded from the initial implementation sequence.
+- Bonus: optional capabilities that do not displace explicit assessment requirements.
 
-Resilience covers the minimum-scope degraded behavior:
-
-- limited connectivity
-- high latency
-- partial service unavailability
-- loading / retry / cache / recovery states
-
-Product evolution objectives (from the assessment objective):
-
-- Evolve into an ecosystem composed of multiple functional domains managed by independent teams.
-- Introduce new experiences, content, or visual components without necessarily requiring a full app release.
-
-The detailed scope and prioritization are defined in:
+The detailed requirement-to-scope mapping, prioritization rationale, and MVP acceptance criteria are maintained in:
 
 `docs/product/scope-and-prioritization.md`
+
+Product priority is a project decision and must not be interpreted as an assessment-provided classification.
 
 ---
 
