@@ -59,6 +59,9 @@ Architectural decisions and significant technical trade-offs are documented as A
 - [Requirements Traceability](docs/product/requirements-traceability.md)  
   Maps the technical assessment requirements to product scope, architecture decisions, implementation, tests, documentation, and verification evidence.
 
+- [MVP Scope and Prioritization](docs/product/scope-and-prioritization.md)  
+  Defines the MVP journey, implementation priorities, scope boundaries, deferred capabilities, and requirement-to-scope mapping.
+
 Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
 ### Architecture
