@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/presentation/theme/app_colors.dart';
 import '../../domain/errors/auth_error.dart';
 import '../auth_state.dart';
 import '../notifiers/auth_notifier.dart';
@@ -18,12 +19,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
-
-  static const _orange = Color(0xFFF58220);
-  static const _darkText = Color(0xFF242424);
-  static const _secondaryText = Color(0xFF6B6B6B);
-  static const _fieldBackground = Color(0xFFF7F7F7);
-  static const _borderColor = Color(0xFFE3E3E3);
 
   @override
   void dispose() {
@@ -90,10 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 32,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Form(
@@ -114,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(
-                            color: _darkText,
+                            color: AppColors.darkText,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
                           ),
@@ -125,9 +117,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       'Sign in to continue to your account',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: _secondaryText,
-                      ),
+                      style: Theme.of(context).textTheme.bodyLarge
+                          ?.copyWith(color: AppColors.secondaryText),
                     ),
 
                     const SizedBox(height: 40),
@@ -196,10 +187,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                     // Error
                     if (errorMessage != null)
-                      _buildErrorMessage(
-                        context,
-                        errorMessage,
-                      ),
+                      _buildErrorMessage(context, errorMessage),
 
                     const SizedBox(height: 28),
 
@@ -210,9 +198,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         key: const Key('login_button'),
                         onPressed: isLoading ? null : _submit,
                         style: FilledButton.styleFrom(
-                          backgroundColor: _orange,
+                          backgroundColor: AppColors.orange,
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor: _orange.withValues(
+                          disabledBackgroundColor: AppColors.orange.withValues(
                             alpha: 0.55,
                           ),
                           disabledForegroundColor: Colors.white,
@@ -230,10 +218,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   height: 22,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : const Text(
@@ -257,15 +244,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Icon(
                           Icons.lock_outline,
                           size: 16,
-                          color: _secondaryText,
+                          color: AppColors.secondaryText,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Your information is secure',
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: _secondaryText,
-                              ),
+                              ?.copyWith(color: AppColors.secondaryText),
                         ),
                       ],
                     ),
@@ -288,7 +273,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: _orange,
+            color: AppColors.orange,
             borderRadius: BorderRadius.circular(18),
           ),
           alignment: Alignment.center,
@@ -306,7 +291,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         const Text(
           'Banco Internacional',
           style: TextStyle(
-            color: _darkText,
+            color: AppColors.darkText,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -319,7 +304,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Text(
       label,
       style: const TextStyle(
-        color: _darkText,
+        color: AppColors.darkText,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
@@ -333,76 +318,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(
-        color: Color(0xFF999999),
-        fontSize: 15,
-      ),
-      prefixIcon: Icon(
-        prefixIcon,
-        color: _secondaryText,
-        size: 21,
-      ),
+      hintStyle: const TextStyle(color: AppColors.hintText, fontSize: 15),
+      prefixIcon: Icon(prefixIcon, color: AppColors.secondaryText, size: 21),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: _fieldBackground,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
+      fillColor: AppColors.fieldBackground,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: _borderColor,
-        ),
+        borderSide: const BorderSide(color: AppColors.borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: _borderColor,
-        ),
+        borderSide: const BorderSide(color: AppColors.borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: _orange,
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: AppColors.orange, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Colors.red.shade400,
-        ),
+        borderSide: BorderSide(color: Colors.red.shade400),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Colors.red.shade400,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: Colors.red.shade400, width: 1.5),
       ),
-      errorStyle: const TextStyle(
-        fontSize: 12,
-        height: 1.3,
-      ),
+      errorStyle: const TextStyle(fontSize: 12, height: 1.3),
     );
   }
 
-  Widget _buildErrorMessage(
-    BuildContext context,
-    String message,
-  ) {
+  Widget _buildErrorMessage(BuildContext context, String message) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 10,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.red.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.red.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.15)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

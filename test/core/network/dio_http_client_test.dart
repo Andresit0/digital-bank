@@ -47,7 +47,7 @@ class _TestHttpClientAdapter implements HttpClientAdapter {
 void main() {
   group('DioHttpClient.get', () {
     test(
-      'delegates the request through Dio and returns the response',
+      'delegates the request through Dio and returns a Map response',
       () async {
         final adapter = _TestHttpClientAdapter(
           response: {'id': 1, 'name': 'Ada'},
@@ -56,12 +56,35 @@ void main() {
           ..httpClientAdapter = adapter;
         final client = DioHttpClient(dio);
 
-        final response = await client.get('/users/1');
+        final response = await client.get<Map<String, dynamic>>('/users/1');
 
         expect(adapter.lastRequestOptions?.method, 'GET');
         expect(adapter.lastRequestOptions?.path, '/users/1');
         expect(response.statusCode, 200);
         expect(response.data, {'id': 1, 'name': 'Ada'});
+      },
+    );
+
+    test(
+      'delegates the request through Dio and returns a List response',
+      () async {
+        final adapter = _TestHttpClientAdapter(
+          response: [
+            {'id': 'acc-1', 'availableBalance': 1500.5},
+            {'id': 'acc-2', 'availableBalance': 20.0},
+          ],
+        );
+        final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+          ..httpClientAdapter = adapter;
+        final client = DioHttpClient(dio);
+
+        final response = await client.get<List<dynamic>>('/accounts');
+
+        expect(adapter.lastRequestOptions?.method, 'GET');
+        expect(adapter.lastRequestOptions?.path, '/accounts');
+        expect(response.statusCode, 200);
+        expect(response.data, isA<List<dynamic>>());
+        expect(response.data, hasLength(2));
       },
     );
   });
@@ -109,7 +132,7 @@ void main() {
       final client = DioHttpClient(dio);
 
       expect(
-        () => client.get('/users/1'),
+        () => client.get<Map<String, dynamic>>('/users/1'),
         throwsA(
           isA<NetworkException>()
               .having((error) => error.statusCode, 'statusCode', 401)

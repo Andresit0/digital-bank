@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import '../support/auth_http_server.dart';
+import '../support/api_http_server.dart';
 
 ProviderContainer _containerForBaseUrl(String baseUrl) {
   return ProviderContainer(
@@ -21,7 +21,7 @@ ProviderContainer _containerForBaseUrl(String baseUrl) {
   );
 }
 
-ProviderContainer _containerFor(AuthHttpServer server) =>
+ProviderContainer _containerFor(ApiHttpServer server) =>
     _containerForBaseUrl(server.baseUrl);
 
 Future<void> _pumpApp(WidgetTester tester, ProviderContainer container) async {
@@ -50,7 +50,7 @@ void main() {
 
   group('Authentication E2E flow', () {
     testWidgets('INT-AUTH-001 successful login reaches home', (tester) async {
-      final server = await AuthHttpServer.start();
+      final server = await ApiHttpServer.start();
       addTearDown(server.close);
       final container = _containerFor(server);
       addTearDown(container.dispose);
@@ -76,8 +76,8 @@ void main() {
     testWidgets('INT-AUTH-002 invalid credentials stay on login', (
       tester,
     ) async {
-      final server = await AuthHttpServer.start(
-        behavior: AuthHttpBehavior.invalidCredentials,
+      final server = await ApiHttpServer.start(
+        behavior: ApiHttpBehavior.invalidCredentials,
       );
       addTearDown(server.close);
       final container = _containerFor(server);
@@ -100,8 +100,8 @@ void main() {
     });
 
     testWidgets('INT-AUTH-003 server error stays on login', (tester) async {
-      final server = await AuthHttpServer.start(
-        behavior: AuthHttpBehavior.serverError,
+      final server = await ApiHttpServer.start(
+        behavior: ApiHttpBehavior.serverError,
       );
       addTearDown(server.close);
       final container = _containerFor(server);
@@ -125,7 +125,7 @@ void main() {
     testWidgets('INT-AUTH-004 transport failure maps to network error', (
       tester,
     ) async {
-      final probe = await AuthHttpServer.start();
+      final probe = await ApiHttpServer.start();
       final closedPort = probe.port;
       await probe.close();
       final container = _containerForBaseUrl('http://127.0.0.1:$closedPort');
@@ -147,7 +147,7 @@ void main() {
     });
 
     testWidgets('INT-AUTH-005 logout returns to login', (tester) async {
-      final server = await AuthHttpServer.start();
+      final server = await ApiHttpServer.start();
       addTearDown(server.close);
       final container = _containerFor(server);
       addTearDown(container.dispose);
@@ -171,7 +171,7 @@ void main() {
     testWidgets('INT-AUTH-006 protected route without session redirects', (
       tester,
     ) async {
-      final server = await AuthHttpServer.start();
+      final server = await ApiHttpServer.start();
       addTearDown(server.close);
       final container = _containerFor(server);
       addTearDown(container.dispose);

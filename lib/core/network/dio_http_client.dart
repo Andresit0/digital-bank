@@ -9,12 +9,12 @@ class DioHttpClient implements HttpClient {
   final Dio _dio;
 
   @override
-  Future<HttpResponse<Map<String, dynamic>>> get(
+  Future<HttpResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
+      final response = await _dio.get<T>(
         path,
         queryParameters: queryParameters,
       );

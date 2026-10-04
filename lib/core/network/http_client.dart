@@ -9,7 +9,7 @@ class HttpResponse<T> {
 }
 
 abstract interface class HttpClient {
-  Future<HttpResponse<Map<String, dynamic>>> get(
+  Future<HttpResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
   });
