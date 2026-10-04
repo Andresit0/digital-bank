@@ -1,7 +1,7 @@
+import 'package:digital_bank/core/services/logging/logging_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../di/auth_providers.dart';
-import '../../domain/errors/auth_error.dart';
 import '../auth_state.dart';
 
 final authProvider = NotifierProvider<AuthNotifier, AuthState>(
@@ -19,14 +19,25 @@ class AuthNotifier extends Notifier<AuthState> {
 
     state = const AuthLoading();
 
-    try {
-      final session = await ref
-          .read(authRepositoryProvider)
-          .login(email: email, password: password);
-      state = AuthAuthenticated(session);
-    } on AuthError catch (error) {
-      state = AuthFailure(error);
-    }
+    final result = await ref
+        .read(authRepositoryProvider)
+        .login(email: email, password: password);
+
+    result.when(
+      success: (session) {
+        state = AuthAuthenticated(session);
+      },
+      failure: (error) {
+        ref
+            .read(loggerProvider)
+            .error(
+              '[auth] authentication failed',
+              technicalMessage: error.technicalMessage,
+              stackTrace: error.stackTrace,
+            );
+        state = AuthFailure(error);
+      },
+    );
   }
 
   void logout() {

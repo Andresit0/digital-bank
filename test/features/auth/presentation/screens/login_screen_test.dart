@@ -1,26 +1,24 @@
 import 'package:digital_bank/features/auth/domain/entities/auth_session.dart';
-import 'package:digital_bank/features/auth/domain/errors/auth_error.dart';
 import 'package:digital_bank/features/auth/domain/repositories/auth_repository.dart';
 import 'package:digital_bank/features/auth/di/auth_providers.dart';
 import 'package:digital_bank/features/auth/presentation/screens/login_screen.dart';
+import 'package:digital_bank/shared/error/app_error.dart';
+import 'package:digital_bank/shared/error/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeAuthRepository implements AuthRepository {
-  _FakeAuthRepository({this.error});
+  _FakeAuthRepository({this.result});
 
-  final Object? error;
+  final Result<AuthSession>? result;
 
   @override
-  Future<AuthSession> login({
+  Future<Result<AuthSession>> login({
     required String email,
     required String password,
   }) async {
-    if (error != null) {
-      throw error!;
-    }
-    return const AuthSession(accessToken: 'token-123');
+    return result ?? const Success(AuthSession(accessToken: 'token-123'));
   }
 }
 
@@ -69,7 +67,11 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(_FakeAuthRepository(error: AuthError.invalidCredentials)),
+        _wrap(
+          _FakeAuthRepository(
+            result: const Failure<AuthSession>(ApiError(statusCode: 401)),
+          ),
+        ),
       );
 
       await tester.enterText(
@@ -88,7 +90,11 @@ void main() {
 
     testWidgets('shows a recoverable error on network failure', (tester) async {
       await tester.pumpWidget(
-        _wrap(_FakeAuthRepository(error: AuthError.network)),
+        _wrap(
+          _FakeAuthRepository(
+            result: const Failure<AuthSession>(NetworkError()),
+          ),
+        ),
       );
 
       await tester.enterText(

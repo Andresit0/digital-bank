@@ -5,6 +5,7 @@ import 'package:digital_bank/features/auth/presentation/auth_state.dart';
 import 'package:digital_bank/features/auth/di/auth_providers.dart';
 import 'package:digital_bank/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:digital_bank/features/auth/presentation/screens/login_screen.dart';
+import 'package:digital_bank/shared/error/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -15,11 +16,11 @@ class _FakeAuthRepository implements AuthRepository {
   final AuthSession? session;
 
   @override
-  Future<AuthSession> login({
+  Future<Result<AuthSession>> login({
     required String email,
     required String password,
   }) async {
-    return session!;
+    return Success(session!);
   }
 }
 
