@@ -79,7 +79,7 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
                           for (final movement in movements) ...[
                             MovementTile(
                               movement: movement,
-                              onTap: () => context.go(
+                              onTap: () => context.push(
                                 '/movements/${movement.id}',
                                 extra: movement,
                               ),
