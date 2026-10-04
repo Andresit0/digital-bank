@@ -196,3 +196,10 @@ the movements infrastructure.
 `MovementsNotifier` exposes a `MovementsState`. The screen observes it through
 `ref.watch`. Access to movements depends on the authentication guard established
 by the auth feature.
+
+## Authentication
+
+Protected endpoint.
+Requires `Authorization: Bearer <accessToken>`.
+The token is attached centrally by the shared API client; the feature never
+reads or builds it. See `docs/architecture/pr18-api-integration.md`.

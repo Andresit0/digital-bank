@@ -141,3 +141,12 @@ may remain unconfigured and be provided at build time.
 `AuthNotifier` exposes an `AuthState`. Routing observes authentication state
 through a `refreshListenable` adapter that triggers `GoRouter.refresh()`; the
 router instance is not rebuilt when authentication state changes.
+
+## Authentication
+
+`POST /auth/login` is a public endpoint and does not require
+`Authorization: Bearer`.
+
+The returned access token is stored centrally in the application session.
+Protected endpoints consume the token through the shared API client.
+See `docs/architecture/pr18-api-integration.md`.

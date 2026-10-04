@@ -147,7 +147,15 @@ The specification defines expected behavior before or alongside implementation. 
 Additional architectural decisions will be documented only when required by
 implementation.
 
-## 6. Scope
+## 6. PR Specifications
+
+| Document | Scope |
+|---|---|
+| [PR12 — Error Handling and Development Logging](pr12-error-handling-and-development-logging.md) | Shared error model, `Result<T>`, logging seam |
+| [PR14 — Production Observability](pr14-production-observability.md) | Provider-agnostic observability seam and event taxonomy |
+| [PR18 — Flutter to NestJS API Integration](pr18-api-integration.md) | In-memory session, Bearer authentication, 401 handling |
+
+## 7. Scope
 
 This architecture is the minimum structure required to begin implementation of the MVP.
 
