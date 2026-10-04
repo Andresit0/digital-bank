@@ -27,6 +27,7 @@ class ApiHttpServer {
     ApiHttpBehavior behavior = ApiHttpBehavior.success,
     String accessToken = 'test-access-token',
     Object? accounts,
+    Object? movements,
   }) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final instance = ApiHttpServer._(server);
@@ -34,6 +35,7 @@ class ApiHttpServer {
       behavior: behavior,
       accessToken: accessToken,
       accounts: accounts,
+      movements: movements,
     );
     return instance;
   }
@@ -58,6 +60,7 @@ class ApiHttpServer {
     required ApiHttpBehavior behavior,
     required String accessToken,
     required Object? accounts,
+    required Object? movements,
   }) {
     _server.listen((request) async {
       final bodyText = await utf8.decoder.bind(request).join();
@@ -77,7 +80,14 @@ class ApiHttpServer {
         return;
       }
 
-      switch (request.uri.path) {
+      final path = request.uri.path;
+
+      if (path.startsWith('/accounts/') && path.endsWith('/movements')) {
+        _respond(request, HttpStatus.ok, movements ?? const <dynamic>[]);
+        return;
+      }
+
+      switch (path) {
         case '/auth/login':
           _respond(
             request,
