@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/accounts/presentation/screens/accounts_screen.dart';
-import '../../features/accounts/presentation/screens/home_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/movements/domain/entities/movement.dart';
 import '../../features/movements/presentation/screens/movement_detail_screen.dart';
 import '../../features/movements/presentation/screens/movements_screen.dart';
