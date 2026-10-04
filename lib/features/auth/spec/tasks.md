@@ -30,7 +30,7 @@ Each implementation step follows RED to GREEN to REFACTOR.
 
 6. PRESENTATION
    - Implement `AuthNotifier`, `authProvider`, and `LoginScreen`.
-   - Register failures through `ILogger` at the notifier boundary.
+   - Register failures through `IObservability` at the notifier boundary.
    - RED to GREEN to REFACTOR.
 
 7. INTEGRATION

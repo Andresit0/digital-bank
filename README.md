@@ -7,10 +7,10 @@ Flutter implementation for the Senior Front-End Technical Assessment.
 Current phase: Core product features
 
 Authentication and Accounts (accounts, available balances) are implemented and
-integrated into the application. Shared error handling and development logging
-are implemented as cross-cutting foundations. Additional core product features
-are being developed incrementally using Specification-Driven Development (SDD)
-and Test-Driven Development (TDD).
+integrated into the application. Shared error handling, development logging, and
+production observability are implemented as cross-cutting foundations. Additional
+core product features are being developed incrementally using Specification-Driven
+Development (SDD) and Test-Driven Development (TDD).
 
 Implemented customer journey:
 
@@ -93,12 +93,17 @@ Documentation will be added progressively as the corresponding engineering decis
   development logging seam, sensitive-data logging constraints, and the
   Auth/Accounts migration.
 
+- [PR14 — Production Observability](docs/architecture/pr14-production-observability.md)
+  Defines the provider-agnostic observability seam (`IObservability`), the event
+  taxonomy, the sensitive-data policy, and the Auth/Accounts reporting migration.
+
 Additional documentation will be added progressively as the corresponding engineering decisions and implementation work.
 
 ### Operations
 
 - [Operations](docs/operations/README.md)
-  Defines the CI quality gate.
+  Defines the CI quality gate and the operational observability and monitoring
+  strategy.
 
 ### Testing
 
