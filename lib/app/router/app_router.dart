@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/accounts/presentation/screens/accounts_screen.dart';
+import '../../features/accounts/presentation/screens/home_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 
 enum AppRoute {
@@ -40,12 +42,12 @@ GoRouter createAppRouter({
       GoRoute(
         path: AppRoute.home.path,
         name: AppRoute.home.name,
-        builder: (_, _) => const RouterPlaceholderScreen(title: 'Home'),
+        builder: (_, _) => const HomeScreen(),
       ),
       GoRoute(
         path: AppRoute.accounts.path,
         name: AppRoute.accounts.name,
-        builder: (_, _) => const RouterPlaceholderScreen(title: 'Accounts'),
+        builder: (_, _) => const AccountsScreen(),
       ),
       GoRoute(
         path: AppRoute.transactions.path,
