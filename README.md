@@ -7,9 +7,10 @@ Flutter implementation for the Senior Front-End Technical Assessment.
 Current phase: Core product features
 
 Authentication and Accounts (accounts, available balances) are implemented and
-integrated into the application. Additional core product features are being
-developed incrementally using Specification-Driven Development (SDD) and
-Test-Driven Development (TDD).
+integrated into the application. Shared error handling and development logging
+are implemented as cross-cutting foundations. Additional core product features
+are being developed incrementally using Specification-Driven Development (SDD)
+and Test-Driven Development (TDD).
 
 Implemented customer journey:
 
