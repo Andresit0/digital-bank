@@ -17,7 +17,8 @@ void main() {
         if (!line.contains(observabilityPath)) {
           continue;
         }
-        final start = line.indexOf(observabilityPath) + observabilityPath.length;
+        final start =
+            line.indexOf(observabilityPath) + observabilityPath.length;
         final after = line.substring(start);
         final end = after.indexOf("'");
         final importedFile = end == -1 ? after : after.substring(0, end);
