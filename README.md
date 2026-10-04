@@ -6,7 +6,16 @@ Flutter implementation for the Senior Front-End Technical Assessment.
 
 Current phase: Core product features
 
-Authentication is implemented and integrated into the application. Additional core product features are being developed incrementally using Specification-Driven Development (SDD) and Test-Driven Development (TDD).
+Authentication and Accounts (accounts, available balances) are implemented and
+integrated into the application. Additional core product features are being
+developed incrementally using Specification-Driven Development (SDD) and
+Test-Driven Development (TDD).
+
+Implemented customer journey:
+
+```text
+Login -> Home -> Accounts
+```
 
 ## Requirements
 
@@ -67,6 +76,9 @@ Architectural decisions and significant technical trade-offs are documented as A
 Feature specifications are maintained alongside each feature under
 `lib/features/<feature>/spec/`.
 
+- `lib/features/auth/spec/`
+- `lib/features/accounts/spec/`
+
 Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
 ### Architecture
@@ -84,16 +96,18 @@ Additional documentation will be added progressively as the corresponding engine
 
 ### Testing
 
-Run the unit and widget tests:
+Run the unit, widget, and integration-style tests:
 
 ```bash
 flutter test
 ```
 
-Run the authentication integration test on a device or simulator:
+Run the end-to-end tests on a device or simulator:
 
 ```bash
 flutter test integration_test/auth/authentication_flow_test.dart
+flutter test integration_test/accounts/accounts_navigation_test.dart
+flutter test integration_test/accounts/accounts_display_test.dart
 ```
 
 If multiple devices or simulators are available, specify the target with `-d <device-id>`.
