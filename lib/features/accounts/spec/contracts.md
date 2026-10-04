@@ -79,9 +79,8 @@ AccountsRepositoryImpl    ->  infrastructure outcomes <-> domain outcomes
 
 `AccountsRemoteDataSource` fetches the HTTP response and maps each item into
 `AccountModel`. It does not know accounts business rules.
-`AccountsRepositoryImpl` maps infrastructure outcomes into the domain contract:
-a non-empty list into `List<Account>`, an empty list into the empty outcome, and
-`NetworkException` into the corresponding `AccountsError`.
+`AccountsRepositoryImpl` puts the data-source result behind `guard()` and maps
+the models into the domain contract `Result<List<Account>>`.
 
 ## AccountsRemoteDataSource
 
@@ -105,17 +104,18 @@ abstract interface class AccountsRemoteDataSource {
 ## Error Mapping
 
 ```text
-HTTP 200 with accounts    -> List<Account>
-HTTP 200 with empty list  -> AccountsEmpty
-HTTP 401                  -> AccountsInvalidCredentials
-HTTP 5xx                  -> AccountsNetwork
-timeout / connection      -> AccountsNetwork
+HTTP 200 with accounts    -> Success(List<Account>)
+HTTP 200 with empty list  -> Success([])
+HTTP 401                  -> Failure(ApiError 401)
+HTTP 5xx                  -> Failure(ApiError 5xx)
+invalid payload           -> Failure(ApiError 200)
+timeout / connection      -> Failure(NetworkError)
 ```
 
-The mapping is performed by `AccountsRepositoryImpl`, not by
-`AccountsRemoteDataSource`. `NetworkException` from the network boundary is
-converted to the corresponding `AccountsError` in the repository
-implementation. `DioException` never crosses into the domain or presentation.
+The mapping is performed by `guard()` (from `shared/error`) at the repository
+boundary, not by `AccountsRemoteDataSource`. `guard()` converts `NetworkException`
+from the network boundary into the corresponding `AppError` carried by
+`Result.failure`. `DioException` never crosses into the domain or presentation.
 
 ## Configuration
 

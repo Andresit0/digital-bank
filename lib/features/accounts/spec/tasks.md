@@ -9,18 +9,20 @@ specification before implementation begins.
    - Confirm internal coherence before writing implementation code.
 
 2. DOMAIN (commit: feat(accounts): implement account domain)
-   - Implement `Account`, `AccountType`, `AccountsError`, `AccountsRepository`.
+   - Implement `Account`, `AccountType`, `AccountsRepository`.
+   - The domain depends on `shared/error` (`Result`, `AppError`).
    - RED to GREEN to REFACTOR.
 
 3. INFRASTRUCTURE (commit: feat(accounts): implement account infrastructure)
    - Implement `AccountModel`, `AccountsRemoteDataSource`, `AccountsRepositoryImpl`.
-   - Map HTTP and transport outcomes to `AccountsError` in `AccountsRepositoryImpl`.
+   - Map infrastructure outcomes through `guard()` into `Result<List<Account>>`.
    - Write the integration test that exercises the real composition during this
      step, not after the feature is finished.
    - RED to GREEN to REFACTOR.
 
 4. PRESENTATION (commit: feat(accounts): implement account presentation)
    - Implement `AccountsState`, `AccountsNotifier`, `AccountsScreen`, account widgets.
+   - Register failures through `ILogger` at the notifier boundary.
    - Add a minimal Home with navigation to Accounts.
    - Widget tests with loading, loaded, empty, and error states.
    - RED to GREEN to REFACTOR.

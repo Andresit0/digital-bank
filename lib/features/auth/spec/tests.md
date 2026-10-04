@@ -40,21 +40,23 @@ a functional behavior asserted inside a unit test.
 ## Error Mapping Ownership
 
 - `AuthRemoteDataSource` tests verify `HttpClient.post(...)` to
-  `AuthResponseModel.fromJson(...)`. They do not assert `AuthError` outcomes.
-- `AuthRepositoryImpl` tests verify the infrastructure-to-domain mapping:
-  - `401` produces `AuthError.InvalidCredentials`.
-  - `5xx` produces `AuthError.Network`.
-  - `NetworkException` without status produces `AuthError.Network`.
-  - `200` produces an `AuthSession`.
+  `AuthResponseModel.fromJson(...)`. They do not assert `AppError` outcomes.
+- `AuthRepositoryImpl` tests verify the infrastructure-to-domain mapping through
+  `guard()`:
+  - `401` produces `Failure(ApiError 401)`.
+  - `5xx` produces `Failure(ApiError 5xx)`.
+  - `NetworkException` without status produces `Failure(NetworkError)`.
+  - `200` produces `Success(AuthSession)`.
 
 ## Behavior Coverage
 
 - Successful authentication produces an authenticated state.
-- Invalid credentials produce `AuthError.InvalidCredentials` without a session.
-- Network failure produces `AuthError.Network` and remains recoverable.
+- Invalid credentials produce `Failure(ApiError 401)` without a session.
+- Network failure produces `Failure(NetworkError)` and remains recoverable.
 - Loading is represented and duplicate submissions are prevented while loading.
 - The protected area requires authentication and redirects when absent.
 - Logout clears the session and returns to login.
+- The notifier logs failures through `ILogger` without sensitive data.
 
 ## Authentication Test Scenarios
 

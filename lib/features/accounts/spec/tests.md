@@ -64,18 +64,21 @@ integration_test/
 ## Error Mapping Ownership
 
 - `AccountsRemoteDataSource` tests verify `HttpClient.get(...)` to
-  `AccountModel.fromJson(...)`. They do not assert `AccountsError` outcomes.
-- `AccountsRepositoryImpl` tests verify the infrastructure-to-domain mapping:
-  - `401` produces `AccountsError.invalidCredentials`.
-  - `5xx` produces `AccountsError.network`.
-  - `NetworkException` without status produces `AccountsError.network`.
-  - a non-empty `200` produces `List<Account>`.
-  - an empty `200` produces the empty outcome.
+  `AccountModel.fromJson(...)`. They do not assert `AppError` outcomes.
+- `AccountsRepositoryImpl` tests verify the infrastructure-to-domain mapping
+  through `guard()`:
+  - `401` produces `Failure(ApiError 401)`.
+  - `5xx` produces `Failure(ApiError 5xx)`.
+  - `NetworkException` without status produces `Failure(NetworkError)`.
+  - an invalid payload with status `200` produces `Failure(ApiError 200)`.
+  - a non-empty `200` produces `Success(List<Account>)`.
+  - an empty `200` produces `Success([])`.
 
 ## Behavior Coverage
 
 - Successful load produces the loaded state.
 - Empty response produces the empty state, not a failure.
-- Failure produces `AccountsFailure` with the mapped error.
+- Failure produces `AccountsFailure` with the mapped `AppError`.
 - Loading is represented.
 - Only the authenticated customer's accounts are represented.
+- The notifier logs failures through `ILogger` without sensitive data.

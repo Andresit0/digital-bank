@@ -87,6 +87,11 @@ Documentation will be added progressively as the corresponding engineering decis
   Defines the application structure, dependency boundaries, SDD/TDD workflow,
   and initial architectural decisions.
 
+- [PR12 — Error Handling and Development Logging](docs/architecture/pr12-error-handling-and-development-logging.md)
+  Defines the shared error model, `Result<T>`, the error mapping boundary, the
+  development logging seam, sensitive-data logging constraints, and the
+  Auth/Accounts migration.
+
 Additional documentation will be added progressively as the corresponding engineering decisions and implementation work.
 
 ### Operations
