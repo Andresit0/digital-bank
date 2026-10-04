@@ -1,4 +1,4 @@
-import 'package:digital_bank/core/network/network_exception.dart';
+import 'package:digital_bank/shared/exceptions/network_exception.dart';
 import 'package:digital_bank/features/auth/domain/entities/auth_session.dart';
 import 'package:digital_bank/features/auth/domain/errors/auth_error.dart';
 import 'package:digital_bank/features/auth/infrastructure/datasources/auth_remote_data_source.dart';

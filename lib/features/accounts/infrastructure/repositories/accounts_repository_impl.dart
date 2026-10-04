@@ -1,4 +1,4 @@
-import 'package:digital_bank/core/network/network_exception.dart';
+import 'package:digital_bank/shared/exceptions/network_exception.dart';
 
 import '../../domain/entities/account.dart';
 import '../../domain/errors/accounts_error.dart';
