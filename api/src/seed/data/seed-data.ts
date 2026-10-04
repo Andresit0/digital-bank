@@ -1,0 +1,132 @@
+import * as bcrypt from 'bcryptjs';
+import { HOME_EXPERIENCE_KEY } from '../../experience/experience.constants';
+
+export const initialData = {
+  user: {
+    fullname: 'Customer Test',
+    email: 'customer@example.com',
+    password: bcrypt.hashSync('secret', 10),
+    roles: ['user'],
+    isActive: true,
+  },
+  accounts: [
+    {
+      id: 'acc-1',
+      type: 'savings',
+      displayName: 'Savings Account',
+      maskedNumber: '****1234',
+      availableBalance: 1500.5,
+    },
+    {
+      id: 'acc-2',
+      type: 'checking',
+      displayName: 'Checking Account',
+      maskedNumber: '****5678',
+      availableBalance: 20.0,
+    },
+    {
+      id: 'acc-3',
+      type: 'savings',
+      displayName: 'Emergency Fund',
+      maskedNumber: '****9012',
+      availableBalance: 4200.0,
+    },
+  ],
+  movements: [
+    {
+      id: 'mov-1',
+      accountId: 'acc-1',
+      type: 'credit',
+      amount: 500.0,
+      currency: 'USD',
+      description: 'Salary',
+      occurredAt: new Date('2026-10-01T09:30:00.000Z'),
+    },
+    {
+      id: 'mov-2',
+      accountId: 'acc-1',
+      type: 'debit',
+      amount: 125.5,
+      currency: 'USD',
+      description: 'Card purchase',
+      occurredAt: new Date('2026-10-02T12:00:00.000Z'),
+    },
+    {
+      id: 'mov-3',
+      accountId: 'acc-1',
+      type: 'debit',
+      amount: 60.0,
+      currency: 'USD',
+      description: 'Utility bill',
+      occurredAt: new Date('2026-10-03T18:05:00.000Z'),
+    },
+    {
+      id: 'mov-4',
+      accountId: 'acc-1',
+      type: 'credit',
+      amount: 220.0,
+      currency: 'USD',
+      description: 'Transfer received',
+      occurredAt: new Date('2026-10-04T08:15:00.000Z'),
+    },
+    {
+      id: 'mov-5',
+      accountId: 'acc-1',
+      type: 'debit',
+      amount: 300.0,
+      currency: 'USD',
+      description: 'ATM withdrawal',
+      occurredAt: new Date('2026-10-05T16:40:00.000Z'),
+    },
+    {
+      id: 'mov-6',
+      accountId: 'acc-2',
+      type: 'credit',
+      amount: 1000.0,
+      currency: 'USD',
+      description: 'Payroll',
+      occurredAt: new Date('2026-10-01T09:35:00.000Z'),
+    },
+    {
+      id: 'mov-7',
+      accountId: 'acc-2',
+      type: 'debit',
+      amount: 980.0,
+      currency: 'USD',
+      description: 'Rent payment',
+      occurredAt: new Date('2026-10-01T10:00:00.000Z'),
+    },
+    {
+      id: 'mov-8',
+      accountId: 'acc-2',
+      type: 'debit',
+      amount: 45.25,
+      currency: 'USD',
+      description: 'Streaming subscription',
+      occurredAt: new Date('2026-10-06T07:20:00.000Z'),
+    },
+  ],
+  experiences: [
+    {
+      experience: HOME_EXPERIENCE_KEY,
+      version: 1,
+      sections: [
+        {
+          type: 'promotion',
+          title: 'Save more this month',
+          description: 'Discover our latest promotion',
+        },
+        {
+          type: 'quick_action',
+          label: 'View movements',
+          action: 'view_movements',
+        },
+        {
+          type: 'quick_action',
+          label: 'View accounts',
+          action: 'view_accounts',
+        },
+      ],
+    },
+  ],
+};
