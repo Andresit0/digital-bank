@@ -1,4 +1,5 @@
 import 'package:digital_bank/core/services/logging/logging_providers.dart';
+import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/features/auth/di/auth_providers.dart';
 import 'package:digital_bank/features/auth/domain/entities/auth_session.dart';
 import 'package:digital_bank/features/auth/domain/repositories/auth_repository.dart';
@@ -7,8 +8,13 @@ import 'package:digital_bank/features/auth/presentation/notifiers/auth_notifier.
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
 import 'package:digital_bank/shared/interfaces/i_logger.dart';
+import 'package:digital_bank/shared/interfaces/i_observability.dart';
+import 'package:digital_bank/shared/observability/observability_severity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../../support/fake_observability.dart';
+import '../../../../support/observability_policy.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   _FakeAuthRepository({this.result});
@@ -24,14 +30,12 @@ class _FakeAuthRepository implements AuthRepository {
   }
 }
 
-class _FakeLogger implements ILogger {
-  final List<String> messages = [];
-  final List<Object?> technicalMessages = [];
-  final List<StackTrace?> stackTraces = [];
-
+class _ThrowingLogger implements ILogger {
   @override
   void info(String message, {String? technicalMessage}) {
-    messages.add(message);
+    throw StateError(
+      'ILogger.info must not be called for a reportable failure',
+    );
   }
 
   @override
@@ -40,16 +44,22 @@ class _FakeLogger implements ILogger {
     Object? technicalMessage,
     StackTrace? stackTrace,
   }) {
-    messages.add(message);
-    technicalMessages.add(technicalMessage);
-    stackTraces.add(stackTrace);
+    throw StateError(
+      'ILogger.error must not be called for a reportable failure',
+    );
   }
 }
 
-ProviderContainer _containerWith(AuthRepository repository, {ILogger? logger}) {
+ProviderContainer _containerWith(
+  AuthRepository repository, {
+  IObservability? observability,
+  ILogger? logger,
+}) {
   return ProviderContainer(
     overrides: [
       authRepositoryProvider.overrideWithValue(repository),
+      if (observability != null)
+        observabilityProvider.overrideWithValue(observability),
       if (logger != null) loggerProvider.overrideWithValue(logger),
     ],
   );
@@ -65,10 +75,12 @@ void main() {
     });
 
     test('AUTH-NOT-002 success emits loading then authenticated', () async {
+      final observability = FakeObservability();
       final container = _containerWith(
         _FakeAuthRepository(
           result: const Success(AuthSession(accessToken: 'token-123')),
         ),
+        observability: observability,
       );
       addTearDown(container.dispose);
 
@@ -83,6 +95,7 @@ void main() {
       final state = container.read(authProvider);
       expect(state, isA<AuthAuthenticated>());
       expect((state as AuthAuthenticated).session.accessToken, 'token-123');
+      expect(observability.events, isEmpty);
     });
 
     test(
@@ -127,30 +140,32 @@ void main() {
       },
     );
 
-    test('AUTH-NOT-005 failure calls ILogger.error exactly once', () async {
-      final logger = _FakeLogger();
+    test(
+      'AUTH-NOT-005 failure reports exactly one event and does not use ILogger',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeAuthRepository(
+            result: const Failure<AuthSession>(NetworkError()),
+          ),
+          observability: observability,
+          logger: _ThrowingLogger(),
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(authProvider.notifier)
+            .login(email: 'customer@example.com', password: 'secret');
+
+        expect(observability.events, hasLength(1));
+      },
+    );
+
+    test('AUTH-NOT-006 captured auth events respect the policy', () async {
+      final observability = FakeObservability();
       final container = _containerWith(
         _FakeAuthRepository(result: const Failure<AuthSession>(NetworkError())),
-        logger: logger,
-      );
-      addTearDown(container.dispose);
-
-      await container
-          .read(authProvider.notifier)
-          .login(email: 'customer@example.com', password: 'secret');
-
-      expect(logger.messages, hasLength(1));
-    });
-
-    test('AUTH-NOT-006 logger payload contains no sensitive data', () async {
-      final logger = _FakeLogger();
-      final container = _containerWith(
-        _FakeAuthRepository(
-          result: const Failure<AuthSession>(
-            NetworkError(technicalMessage: 'connection refused'),
-          ),
-        ),
-        logger: logger,
+        observability: observability,
       );
       addTearDown(container.dispose);
 
@@ -161,13 +176,7 @@ void main() {
             password: 'super-secret-password',
           );
 
-      final captured = [
-        ...logger.messages,
-        ...logger.technicalMessages.map((element) => element?.toString() ?? ''),
-      ].join(' ');
-
-      expect(captured, isNot(contains('super-secret-password')));
-      expect(captured, isNot(contains('accessToken')));
+      expectEventsRespectSensitiveDataPolicy(observability.events);
     });
 
     test('AUTH-NOT-007 logout returns to unauthenticated', () async {
@@ -185,6 +194,75 @@ void main() {
 
       container.read(authProvider.notifier).logout();
       expect(container.read(authProvider), isA<AuthUnauthenticated>());
+    });
+
+    test(
+      'OBS-INT-AUTH-001 401 reports auth_login_failed with metadata',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeAuthRepository(
+            result: const Failure<AuthSession>(ApiError(statusCode: 401)),
+          ),
+          observability: observability,
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(authProvider.notifier)
+            .login(email: 'customer@example.com', password: 'wrong');
+
+        final event = observability.events.single;
+        expect(event.name, 'auth_login_failed');
+        expect(event.severity, ObservabilitySeverity.warning);
+        expect(event.metadata['errorType'], 'ApiError');
+        expect(event.metadata['statusCode'], 401);
+      },
+    );
+
+    test(
+      'OBS-INT-AUTH-002 network failure reports auth_login_failed',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeAuthRepository(
+            result: const Failure<AuthSession>(NetworkError()),
+          ),
+          observability: observability,
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(authProvider.notifier)
+            .login(email: 'customer@example.com', password: 'secret');
+
+        final event = observability.events.single;
+        expect(event.name, 'auth_login_failed');
+        expect(event.metadata['errorType'], 'NetworkError');
+        expect(event.metadata.containsKey('statusCode'), isFalse);
+      },
+    );
+
+    test('OBS-INT-AUTH-003 logout reports auth_logout', () async {
+      final observability = FakeObservability();
+      final container = _containerWith(
+        _FakeAuthRepository(
+          result: const Success(AuthSession(accessToken: 'token-123')),
+        ),
+        observability: observability,
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(authProvider.notifier)
+          .login(email: 'customer@example.com', password: 'secret');
+
+      container.read(authProvider.notifier).logout();
+
+      final event = observability.events.single;
+      expect(event.name, 'auth_logout');
+      expect(event.severity, ObservabilitySeverity.info);
+      expect(event.metadata, isEmpty);
     });
   });
 }

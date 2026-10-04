@@ -1,13 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:digital_bank/core/network/dio_http_client.dart';
+import 'package:digital_bank/core/network/network_providers.dart';
+import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
 import 'package:digital_bank/features/accounts/infrastructure/datasources/accounts_remote_data_source.dart';
 import 'package:digital_bank/features/accounts/infrastructure/repositories/accounts_repository_impl.dart';
+import 'package:digital_bank/features/accounts/presentation/accounts_state.dart';
+import 'package:digital_bank/features/accounts/presentation/notifiers/accounts_notifier.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/api_test_server.dart';
+import '../../../support/fake_observability.dart';
 
 AccountsRepositoryImpl _repositoryFor(ApiTestServer server) {
   final dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
@@ -77,5 +83,28 @@ void main() {
       expect(result, isA<Success<List<Account>>>());
       expect((result as Success<List<Account>>).data, isEmpty);
     });
+
+    test(
+      'OBS-INT-ACC-WIRING-001 load failure reports accounts_load_failed',
+      () async {
+        final server = ApiTestServer.serverError();
+        final observability = FakeObservability();
+        final dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
+          ..httpClientAdapter = server;
+        final container = ProviderContainer(
+          overrides: [
+            dioProvider.overrideWithValue(dio),
+            observabilityProvider.overrideWithValue(observability),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container.read(accountsProvider.notifier).load();
+
+        expect(container.read(accountsProvider), isA<AccountsFailure>());
+        expect(observability.events, hasLength(1));
+        expect(observability.events.single.name, 'accounts_load_failed');
+      },
+    );
   });
 }

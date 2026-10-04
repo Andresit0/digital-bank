@@ -22,7 +22,7 @@ specification before implementation begins.
 
 4. PRESENTATION (commit: feat(accounts): implement account presentation)
    - Implement `AccountsState`, `AccountsNotifier`, `AccountsScreen`, account widgets.
-   - Register failures through `ILogger` at the notifier boundary.
+   - Register failures through `IObservability` at the notifier boundary.
    - Add a minimal Home with navigation to Accounts.
    - Widget tests with loading, loaded, empty, and error states.
    - RED to GREEN to REFACTOR.

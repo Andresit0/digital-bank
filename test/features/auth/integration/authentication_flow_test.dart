@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:digital_bank/app/app.dart';
 import 'package:digital_bank/app/di/router/router_provider.dart';
 import 'package:digital_bank/core/network/network_providers.dart';
+import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
+import 'package:digital_bank/shared/interfaces/i_observability.dart';
 import 'package:digital_bank/features/auth/presentation/auth_state.dart';
 import 'package:digital_bank/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:digital_bank/features/auth/presentation/screens/login_screen.dart';
@@ -11,8 +13,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/api_test_server.dart';
+import '../../../support/fake_observability.dart';
 
-ProviderContainer _containerFor(ApiTestServer server) {
+ProviderContainer _containerFor(
+  ApiTestServer server, {
+  IObservability? observability,
+}) {
   return ProviderContainer(
     overrides: [
       dioProvider.overrideWithValue(
@@ -25,6 +31,8 @@ ProviderContainer _containerFor(ApiTestServer server) {
           ),
         )..httpClientAdapter = server,
       ),
+      if (observability != null)
+        observabilityProvider.overrideWithValue(observability),
     ],
   );
 }
@@ -187,6 +195,26 @@ void main() {
 
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Home'), findsNothing);
+    });
+
+    testWidgets('OBS-INT-AUTH-WIRING-001 login failure reports event', (
+      tester,
+    ) async {
+      final server = ApiTestServer.unauthorized();
+      final observability = FakeObservability();
+      final container = _containerFor(server, observability: observability);
+      addTearDown(container.dispose);
+
+      await _pumpApp(tester, container);
+
+      await _submitLogin(
+        tester,
+        email: 'customer@example.com',
+        password: 'wrong',
+      );
+
+      expect(observability.events, hasLength(1));
+      expect(observability.events.single.name, 'auth_login_failed');
     });
   });
 }

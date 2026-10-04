@@ -1,4 +1,5 @@
 import 'package:digital_bank/core/services/logging/logging_providers.dart';
+import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/features/accounts/di/accounts_providers.dart';
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
 import 'package:digital_bank/features/accounts/domain/repositories/accounts_repository.dart';
@@ -7,8 +8,13 @@ import 'package:digital_bank/features/accounts/presentation/notifiers/accounts_n
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
 import 'package:digital_bank/shared/interfaces/i_logger.dart';
+import 'package:digital_bank/shared/interfaces/i_observability.dart';
+import 'package:digital_bank/shared/observability/observability_severity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../../support/fake_observability.dart';
+import '../../../../support/observability_policy.dart';
 
 class _FakeAccountsRepository implements AccountsRepository {
   _FakeAccountsRepository({this.result});
@@ -21,14 +27,12 @@ class _FakeAccountsRepository implements AccountsRepository {
   }
 }
 
-class _FakeLogger implements ILogger {
-  final List<String> messages = [];
-  final List<Object?> technicalMessages = [];
-  final List<StackTrace?> stackTraces = [];
-
+class _ThrowingLogger implements ILogger {
   @override
   void info(String message, {String? technicalMessage}) {
-    messages.add(message);
+    throw StateError(
+      'ILogger.info must not be called for a reportable failure',
+    );
   }
 
   @override
@@ -37,19 +41,22 @@ class _FakeLogger implements ILogger {
     Object? technicalMessage,
     StackTrace? stackTrace,
   }) {
-    messages.add(message);
-    technicalMessages.add(technicalMessage);
-    stackTraces.add(stackTrace);
+    throw StateError(
+      'ILogger.error must not be called for a reportable failure',
+    );
   }
 }
 
 ProviderContainer _containerWith(
   AccountsRepository repository, {
+  IObservability? observability,
   ILogger? logger,
 }) {
   return ProviderContainer(
     overrides: [
       accountsRepositoryProvider.overrideWithValue(repository),
+      if (observability != null)
+        observabilityProvider.overrideWithValue(observability),
       if (logger != null) loggerProvider.overrideWithValue(logger),
     ],
   );
@@ -121,43 +128,78 @@ void main() {
       expect((error as ApiError).statusCode, 500);
     });
 
-    test('ACC-NOT-005 failure calls ILogger.error exactly once', () async {
-      final logger = _FakeLogger();
+    test(
+      'ACC-NOT-005 failure reports exactly one event and does not use ILogger',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeAccountsRepository(
+            result: const Failure<List<Account>>(NetworkError()),
+          ),
+          observability: observability,
+          logger: _ThrowingLogger(),
+        );
+        addTearDown(container.dispose);
+
+        await container.read(accountsProvider.notifier).load();
+
+        expect(observability.events, hasLength(1));
+      },
+    );
+
+    test('ACC-NOT-006 captured accounts events respect the policy', () async {
+      final observability = FakeObservability();
       final container = _containerWith(
         _FakeAccountsRepository(
           result: const Failure<List<Account>>(NetworkError()),
         ),
-        logger: logger,
+        observability: observability,
       );
       addTearDown(container.dispose);
 
       await container.read(accountsProvider.notifier).load();
 
-      expect(logger.messages, hasLength(1));
+      expectEventsRespectSensitiveDataPolicy(observability.events);
     });
 
-    test('ACC-NOT-006 logger payload contains no sensitive data', () async {
-      final logger = _FakeLogger();
+    test('OBS-INT-ACC-001 server error reports accounts_load_failed', () async {
+      final observability = FakeObservability();
       final container = _containerWith(
         _FakeAccountsRepository(
-          result: const Failure<List<Account>>(
-            NetworkError(technicalMessage: 'connection refused'),
-          ),
+          result: const Failure<List<Account>>(ApiError(statusCode: 500)),
         ),
-        logger: logger,
+        observability: observability,
       );
       addTearDown(container.dispose);
 
       await container.read(accountsProvider.notifier).load();
 
-      final captured = [
-        ...logger.messages,
-        ...logger.technicalMessages.map((element) => element?.toString() ?? ''),
-      ].join(' ');
-
-      expect(captured, isNot(contains('****1234')));
-      expect(captured, isNot(contains('1500')));
-      expect(captured, isNot(contains('accessToken')));
+      final event = observability.events.single;
+      expect(event.name, 'accounts_load_failed');
+      expect(event.severity, ObservabilitySeverity.warning);
+      expect(event.metadata['errorType'], 'ApiError');
+      expect(event.metadata['statusCode'], 500);
     });
+
+    test(
+      'OBS-INT-ACC-002 network failure reports accounts_load_failed',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeAccountsRepository(
+            result: const Failure<List<Account>>(NetworkError()),
+          ),
+          observability: observability,
+        );
+        addTearDown(container.dispose);
+
+        await container.read(accountsProvider.notifier).load();
+
+        final event = observability.events.single;
+        expect(event.name, 'accounts_load_failed');
+        expect(event.metadata['errorType'], 'NetworkError');
+        expect(event.metadata.containsKey('statusCode'), isFalse);
+      },
+    );
   });
 }

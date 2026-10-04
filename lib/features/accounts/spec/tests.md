@@ -81,4 +81,4 @@ integration_test/
 - Failure produces `AccountsFailure` with the mapped `AppError`.
 - Loading is represented.
 - Only the authenticated customer's accounts are represented.
-- The notifier logs failures through `ILogger` without sensitive data.
+- The notifier reports failures through `IObservability` without sensitive data.

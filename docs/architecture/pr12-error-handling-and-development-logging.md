@@ -20,7 +20,7 @@ PR12 introduces a transversal, explicit error model and a development logging se
 - transport failures never leak into domain or presentation;
 - features consume a single error vocabulary;
 - failures can be observed during development without coupling features to a concrete observability provider;
-- PR13 can attach a production logger (Crashlytics/Firebase/Sentry) without changes in Auth, Accounts, or future features.
+- PR14 can attach a production observability provider (Crashlytics/Firebase/Sentry) without changes in Auth, Accounts, or future features.
 
 This document is the bridge:
 
@@ -313,7 +313,7 @@ import 'dev_logger.dart';
 final loggerProvider = Provider<ILogger>((ref) => const DevLogger());
 ```
 
-PR13 replaces the provider binding (composition root) without touching features.
+PR14 provides production observability through `IObservability` (composition root) without touching features.
 
 ---
 
@@ -646,7 +646,7 @@ lib/features/accounts/domain/errors/accounts_error.dart
 | Item | Relationship |
 |---|---|
 | ADR-003 | Implements the documented "transport failure → application error → presentation state" boundary |
-| ADR-009 | `ILogger` is the seam that ADR-009 will bind to production observability in PR13 |
+| ADR-009 | `ILogger` is the development seam; production observability is provided by `IObservability` bound through `observabilityProvider` (PR14) |
 | REQ-009 | Explicit Failure states are the foundation for loading/retry/recovery |
 | REQ-013 | Development logging is the first, non-production step of the monitoring strategy |
 | REQ-022 | Engineering quality: explicit error model, testable providers, observability seam |

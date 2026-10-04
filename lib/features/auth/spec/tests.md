@@ -56,7 +56,7 @@ a functional behavior asserted inside a unit test.
 - Loading is represented and duplicate submissions are prevented while loading.
 - The protected area requires authentication and redirects when absent.
 - Logout clears the session and returns to login.
-- The notifier logs failures through `ILogger` without sensitive data.
+- The notifier reports failures through `IObservability` without sensitive data.
 
 ## Authentication Test Scenarios
 
