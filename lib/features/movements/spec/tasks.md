@@ -35,14 +35,14 @@ specification before implementation begins.
      Accounts state).
    - RED to GREEN to REFACTOR.
 
-5. OBSERVABILITY (commit: refactor(movements): report production observability events)
+5. INTEGRATION AND E2E (commit: test(movements): complete integration and E2E coverage)
+   - Integration-style: load, empty, HTTP error, transport failure, wiring.
+   - E2E: login -> home -> accounts -> movements; movements -> detail; detail -> back keeps the list.
+
+6. OBSERVABILITY (commit: refactor(movements): report production observability events)
    - Report `movements_load_failed` (warning) once from the notifier on failure,
      with `errorType` and `statusCode` only for `ApiError`.
    - No sensitive data in the event.
-
-6. INTEGRATION AND E2E (commit: test(movements): complete integration and E2E coverage)
-   - Integration-style: load, empty, HTTP error, transport failure, wiring.
-   - E2E: login -> home -> accounts -> movements; movements -> detail.
 
 7. TRACEABILITY AND DOCS (commit: docs(movements): update traceability, taxonomy and README)
    - Update `docs/product/requirements-traceability.md` (REQ-002, REQ-009).

@@ -38,6 +38,7 @@ observability provider is integrated in PR14.
 | `auth_login_failed` | warning | auth |
 | `auth_logout` | info | auth |
 | `accounts_load_failed` | warning | accounts |
+| `movements_load_failed` | warning | movements |
 
 ### Information that may be observed
 

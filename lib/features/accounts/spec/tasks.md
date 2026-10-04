@@ -36,7 +36,7 @@ specification before implementation begins.
 
 6. TRACEABILITY (commit: docs(accounts): document account traceability)
    - Update `docs/product/requirements-traceability.md`.
-   - REQ-002: accounts and balances Implemented; movements Deferred.
+   - REQ-002: accounts and balances implemented; movements implemented by the Movements feature (PR15).
 
 ## Definition of Done
 

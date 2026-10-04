@@ -60,7 +60,12 @@ implementation.
 | ID | Scenario |
 |---|---|
 | E2E-MOV-001 | Login -> Home -> Accounts -> Movements (account card tap) |
-| E2E-MOV-002 | Authenticated on Movements with the account loaded -> Movement Detail (/movements/:id), no additional HTTP request |
+| E2E-MOV-002 | Movements loaded -> Movement Detail (/movements/:id) -> back to the list; list remains available and no additional HTTP request is made |
+
+`E2E-MOV-002` protects the list -> detail -> back cycle: opening a movement
+detail reuses the loaded `Movement`, back navigation keeps the movements list
+and its `accountId` context, and no second request to
+`GET /accounts/{accountId}/movements` is made.
 
 ## Test Files
 
