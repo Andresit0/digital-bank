@@ -1,5 +1,6 @@
+import 'package:digital_bank/shared/error/app_error.dart';
+
 import '../domain/entities/account.dart';
-import '../domain/errors/accounts_error.dart';
 
 sealed class AccountsState {
   const AccountsState();
@@ -26,5 +27,5 @@ final class AccountsEmpty extends AccountsState {
 final class AccountsFailure extends AccountsState {
   const AccountsFailure(this.error);
 
-  final AccountsError error;
+  final AppError error;
 }

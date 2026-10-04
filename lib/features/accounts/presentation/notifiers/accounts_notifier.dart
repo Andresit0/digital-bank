@@ -1,7 +1,7 @@
+import 'package:digital_bank/core/services/logging/logging_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../di/accounts_providers.dart';
-import '../../domain/errors/accounts_error.dart';
 import '../accounts_state.dart';
 
 final accountsProvider = NotifierProvider<AccountsNotifier, AccountsState>(
@@ -19,15 +19,24 @@ class AccountsNotifier extends Notifier<AccountsState> {
 
     state = const AccountsLoading();
 
-    try {
-      final accounts = await ref
-          .read(accountsRepositoryProvider)
-          .fetchAccounts();
-      state = accounts.isEmpty
-          ? const AccountsEmpty()
-          : AccountsLoaded(accounts);
-    } on AccountsError catch (error) {
-      state = AccountsFailure(error);
-    }
+    final result = await ref.read(accountsRepositoryProvider).fetchAccounts();
+
+    result.when(
+      success: (accounts) {
+        state = accounts.isEmpty
+            ? const AccountsEmpty()
+            : AccountsLoaded(accounts);
+      },
+      failure: (error) {
+        ref
+            .read(loggerProvider)
+            .error(
+              '[accounts] load failed',
+              technicalMessage: error.technicalMessage,
+              stackTrace: error.stackTrace,
+            );
+        state = AccountsFailure(error);
+      },
+    );
   }
 }

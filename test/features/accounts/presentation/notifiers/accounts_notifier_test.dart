@@ -1,46 +1,75 @@
+import 'package:digital_bank/core/services/logging/logging_providers.dart';
 import 'package:digital_bank/features/accounts/di/accounts_providers.dart';
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
-import 'package:digital_bank/features/accounts/domain/errors/accounts_error.dart';
 import 'package:digital_bank/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:digital_bank/features/accounts/presentation/accounts_state.dart';
 import 'package:digital_bank/features/accounts/presentation/notifiers/accounts_notifier.dart';
+import 'package:digital_bank/shared/error/app_error.dart';
+import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/interfaces/i_logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeAccountsRepository implements AccountsRepository {
-  _FakeAccountsRepository({this.accounts, this.error});
+  _FakeAccountsRepository({this.result});
 
-  final List<Account>? accounts;
-  final Object? error;
+  final Result<List<Account>>? result;
 
   @override
-  Future<List<Account>> fetchAccounts() async {
-    if (error != null) {
-      throw error!;
-    }
-    return accounts!;
+  Future<Result<List<Account>>> fetchAccounts() async {
+    return result!;
   }
 }
 
-ProviderContainer _containerWith(AccountsRepository repository) {
+class _FakeLogger implements ILogger {
+  final List<String> messages = [];
+  final List<Object?> technicalMessages = [];
+  final List<StackTrace?> stackTraces = [];
+
+  @override
+  void info(String message, {String? technicalMessage}) {
+    messages.add(message);
+  }
+
+  @override
+  void error(
+    String message, {
+    Object? technicalMessage,
+    StackTrace? stackTrace,
+  }) {
+    messages.add(message);
+    technicalMessages.add(technicalMessage);
+    stackTraces.add(stackTrace);
+  }
+}
+
+ProviderContainer _containerWith(
+  AccountsRepository repository, {
+  ILogger? logger,
+}) {
   return ProviderContainer(
-    overrides: [accountsRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      accountsRepositoryProvider.overrideWithValue(repository),
+      if (logger != null) loggerProvider.overrideWithValue(logger),
+    ],
   );
 }
 
 void main() {
   group('AccountsNotifier', () {
-    test('starts in the initial state', () {
-      final container = _containerWith(_FakeAccountsRepository(accounts: []));
+    test('ACC-NOT-001 starts in the initial state', () {
+      final container = _containerWith(
+        _FakeAccountsRepository(result: const Success<List<Account>>([])),
+      );
       addTearDown(container.dispose);
 
       expect(container.read(accountsProvider), isA<AccountsInitial>());
     });
 
-    test('emits loading then loaded on success', () async {
+    test('ACC-NOT-002 success emits loading then loaded', () async {
       final container = _containerWith(
         _FakeAccountsRepository(
-          accounts: const [
+          result: const Success<List<Account>>([
             Account(
               id: 'acc-1',
               type: AccountType.savings,
@@ -48,7 +77,7 @@ void main() {
               maskedNumber: '****1234',
               availableBalance: 1500.5,
             ),
-          ],
+          ]),
         ),
       );
       addTearDown(container.dispose);
@@ -64,9 +93,9 @@ void main() {
       expect((state as AccountsLoaded).accounts, hasLength(1));
     });
 
-    test('emits empty when the account list is empty', () async {
+    test('ACC-NOT-003 empty result emits empty', () async {
       final container = _containerWith(
-        _FakeAccountsRepository(accounts: const []),
+        _FakeAccountsRepository(result: const Success<List<Account>>([])),
       );
       addTearDown(container.dispose);
 
@@ -75,9 +104,11 @@ void main() {
       expect(container.read(accountsProvider), isA<AccountsEmpty>());
     });
 
-    test('emits failure on error', () async {
+    test('ACC-NOT-004 failure emits failure with ApiError', () async {
       final container = _containerWith(
-        _FakeAccountsRepository(error: AccountsError.network),
+        _FakeAccountsRepository(
+          result: const Failure<List<Account>>(ApiError(statusCode: 500)),
+        ),
       );
       addTearDown(container.dispose);
 
@@ -85,7 +116,48 @@ void main() {
 
       final state = container.read(accountsProvider);
       expect(state, isA<AccountsFailure>());
-      expect((state as AccountsFailure).error, AccountsError.network);
+      final error = (state as AccountsFailure).error;
+      expect(error, isA<ApiError>());
+      expect((error as ApiError).statusCode, 500);
+    });
+
+    test('ACC-NOT-005 failure calls ILogger.error exactly once', () async {
+      final logger = _FakeLogger();
+      final container = _containerWith(
+        _FakeAccountsRepository(
+          result: const Failure<List<Account>>(NetworkError()),
+        ),
+        logger: logger,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(accountsProvider.notifier).load();
+
+      expect(logger.messages, hasLength(1));
+    });
+
+    test('ACC-NOT-006 logger payload contains no sensitive data', () async {
+      final logger = _FakeLogger();
+      final container = _containerWith(
+        _FakeAccountsRepository(
+          result: const Failure<List<Account>>(
+            NetworkError(technicalMessage: 'connection refused'),
+          ),
+        ),
+        logger: logger,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(accountsProvider.notifier).load();
+
+      final captured = [
+        ...logger.messages,
+        ...logger.technicalMessages.map((element) => element?.toString() ?? ''),
+      ].join(' ');
+
+      expect(captured, isNot(contains('****1234')));
+      expect(captured, isNot(contains('1500')));
+      expect(captured, isNot(contains('accessToken')));
     });
   });
 }
