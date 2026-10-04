@@ -13,12 +13,12 @@ class _FakeHttpClient implements HttpClient {
   Object? lastData;
 
   @override
-  Future<HttpResponse<Map<String, dynamic>>> get(
+  Future<HttpResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
     lastPath = path;
-    return _response;
+    return HttpResponse<T>();
   }
 
   @override

@@ -8,11 +8,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 class _FakeHttpClient implements HttpClient {
   @override
-  Future<HttpResponse<Map<String, dynamic>>> get(
+  Future<HttpResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
-    return const HttpResponse(statusCode: 200);
+    return HttpResponse<T>();
   }
 
   @override
