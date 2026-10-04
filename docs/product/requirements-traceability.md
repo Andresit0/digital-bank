@@ -414,6 +414,8 @@ At version 1.0, the project is in the requirements-baseline phase. The implement
 | `Documented` | Supporting documentation is complete |
 | `Complete` | Implementation, verification, and documentation are complete |
 
+Version 1.0 established the requirements baseline. Implementation has since progressed and is tracked per item in the matrix; the baseline remains as the historical starting point.
+
 Initial state:
 
 ```text
@@ -425,6 +427,16 @@ Implementation: Not started
 Tests:          Not started
 Documentation:  Baseline
 Evidence:       TBD
+```
+
+Current implementation status:
+
+```text
+Architecture:  ADR-001/002/003 defined (Accepted)
+Implementation: In progress (authentication, accounts)
+Tests:          In progress (unit, widget, integration-style, E2E)
+Documentation:  In progress
+Evidence:       Partial
 ```
 
 ---
