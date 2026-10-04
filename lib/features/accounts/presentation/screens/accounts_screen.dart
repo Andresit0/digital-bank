@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../shared/presentation/theme/app_colors.dart';
 import '../../../../shared/presentation/widgets/bank_app_bar.dart';
@@ -54,7 +55,15 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     ),
                     const SizedBox(height: 14),
                     for (final account in accounts) ...[
-                      AccountCard(account: account),
+                      AccountCard(
+                        account: account,
+                        onTap: () => context.go(
+                          Uri(
+                            path: '/movements',
+                            queryParameters: {'accountId': account.id},
+                          ).toString(),
+                        ),
+                      ),
                       const SizedBox(height: 14),
                     ],
                   ],
