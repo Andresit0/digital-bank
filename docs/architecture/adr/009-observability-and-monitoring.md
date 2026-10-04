@@ -57,6 +57,7 @@ Development diagnostics        Production telemetry
 | `auth_login_failed` | warning | auth |
 | `auth_logout` | info | auth |
 | `accounts_load_failed` | warning | accounts |
+| `movements_load_failed` | warning | movements |
 
 Event names are plain strings. Shared owns the generic names; each feature owns
 its namespace (`auth_*`, `accounts_*`), so `shared` does not depend on features.

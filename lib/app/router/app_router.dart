@@ -4,13 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../../features/accounts/presentation/screens/accounts_screen.dart';
 import '../../features/accounts/presentation/screens/home_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/movements/domain/entities/movement.dart';
+import '../../features/movements/presentation/screens/movement_detail_screen.dart';
+import '../../features/movements/presentation/screens/movements_screen.dart';
 
 enum AppRoute {
   bootstrap(path: '/', name: 'bootstrap'),
   login(path: '/login', name: 'login'),
   home(path: '/home', name: 'home'),
   accounts(path: '/accounts', name: 'accounts'),
-  transactions(path: '/transactions', name: 'transactions');
+  movements(path: '/movements', name: 'movements');
 
   const AppRoute({required this.path, required this.name});
 
@@ -50,9 +53,18 @@ GoRouter createAppRouter({
         builder: (_, _) => const AccountsScreen(),
       ),
       GoRoute(
-        path: AppRoute.transactions.path,
-        name: AppRoute.transactions.name,
-        builder: (_, _) => const RouterPlaceholderScreen(title: 'Transactions'),
+        path: AppRoute.movements.path,
+        name: AppRoute.movements.name,
+        builder: (_, state) =>
+            MovementsScreen(accountId: state.uri.queryParameters['accountId']),
+        routes: [
+          GoRoute(
+            path: ':id',
+            name: 'movementDetail',
+            builder: (_, state) =>
+                MovementDetailScreen(movement: state.extra as Movement?),
+          ),
+        ],
       ),
     ],
   );

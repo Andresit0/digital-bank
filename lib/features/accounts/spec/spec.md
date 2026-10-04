@@ -24,8 +24,8 @@ area of the application.
 - Real backend integration.
 - Token persistence, refresh, or session restoration.
 
-Movements are explicitly deferred to a later pull request. This feature
-partially implements REQ-002: accounts and balances only.
+Movements are implemented by the separate Movements feature (PR15). This feature
+covers the accounts and balances part of REQ-002.
 
 ## Actors
 
@@ -84,8 +84,8 @@ assessment requirement.
 
 ## Traceability
 
-- REQ-002 Account management, balances, and movements (partial: accounts and
-  balances only; movements deferred).
+- REQ-002 Account management, balances, and movements (accounts and balances;
+  movements implemented by the Movements feature in PR15).
 - REQ-009 Loading, retry, cache, and recovery states.
 - REQ-023 Usable and coherent experience.
 - REQ-010 Unit tests.

@@ -6,16 +6,17 @@ Flutter implementation for the Senior Front-End Technical Assessment.
 
 Current phase: Core product features
 
-Authentication and Accounts (accounts, available balances) are implemented and
-integrated into the application. Shared error handling, development logging, and
-production observability are implemented as cross-cutting foundations. Additional
-core product features are being developed incrementally using Specification-Driven
+Authentication, Accounts (accounts, available balances), and Movements
+(transaction history and detail) are implemented and integrated into the
+application. Shared error handling, development logging, and production
+observability are implemented as cross-cutting foundations. Additional core
+product features are being developed incrementally using Specification-Driven
 Development (SDD) and Test-Driven Development (TDD).
 
 Implemented customer journey:
 
 ```text
-Login -> Home -> Accounts
+Login -> Home -> Accounts -> Movements
 ```
 
 ## Requirements
@@ -79,6 +80,7 @@ Feature specifications are maintained alongside each feature under
 
 - `lib/features/auth/spec/`
 - `lib/features/accounts/spec/`
+- `lib/features/movements/spec/`
 
 Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
@@ -119,6 +121,7 @@ Run the end-to-end tests on a device or simulator:
 flutter test integration_test/auth/authentication_flow_test.dart
 flutter test integration_test/accounts/accounts_navigation_test.dart
 flutter test integration_test/accounts/accounts_display_test.dart
+flutter test integration_test/movements/movements_flow_test.dart
 ```
 
 If multiple devices or simulators are available, specify the target with `-d <device-id>`.
