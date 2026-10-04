@@ -19,10 +19,7 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      expect(
-        container.read(observabilityProvider),
-        isA<NoopObservability>(),
-      );
+      expect(container.read(observabilityProvider), isA<NoopObservability>());
     });
   });
 }
