@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/presentation/theme/app_colors.dart';
 import '../../domain/entities/account.dart';
 
 class AccountCard extends StatelessWidget {
-  const AccountCard({super.key, required this.account});
+  const AccountCard({required this.account, super.key});
 
   final Account account;
 
@@ -11,21 +12,92 @@ class AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       key: Key('account_card_${account.id}'),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              account.displayName,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.orangeSoft,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: AppColors.orange,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        account.displayName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        account.maskedNumber,
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Colors.black38),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(account.maskedNumber),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
+            const Text(
+              'Available balance',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 6),
             Text(
               _formatBalance(account.availableBalance),
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Divider(height: 1, color: Colors.grey.shade200),
+            const SizedBox(height: 14),
+            const Row(
+              children: [
+                Icon(
+                  Icons.check_circle_outline,
+                  size: 18,
+                  color: AppColors.orange,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Available',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
           ],
         ),
@@ -34,21 +106,6 @@ class AccountCard extends StatelessWidget {
   }
 }
 
-String _formatBalance(double value) {
-  final fixed = value.toStringAsFixed(2);
-  final parts = fixed.split('.');
-  final integerPart = parts[0];
-  final decimals = parts[1];
-
-  final buffer = StringBuffer();
-  final digits = integerPart.replaceFirst('-', '');
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) {
-      buffer.write(',');
-    }
-    buffer.write(digits[i]);
-  }
-
-  final sign = integerPart.startsWith('-') ? '-' : '';
-  return '$sign\$$buffer.$decimals';
+String _formatBalance(double balance) {
+  return '\$${balance.toStringAsFixed(2).replaceAllMapped(RegExp(r'(?<=\d)(?=(\d{3})+(?!\d))'), (match) => ',')}';
 }
