@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../features/experience/domain/entities/quick_action_type.dart';
+import '../../../../features/experience/presentation/widgets/experience_renderer.dart';
 import '../../../../shared/presentation/theme/app_colors.dart';
 import '../../../../shared/presentation/widgets/bank_app_bar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  void _onExperienceAction(BuildContext context, QuickActionType action) {
+    switch (action) {
+      case QuickActionType.viewAccounts:
+        context.go('/accounts');
+      case QuickActionType.viewMovements:
+        context.go('/accounts');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +65,9 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 28),
+                  ExperienceRenderer(
+                    onAction: (action) => _onExperienceAction(context, action),
+                  ),
                   const Text(
                     'Quick access',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),

@@ -76,10 +76,11 @@ void main() {
         password: 'secret',
       );
 
-      expect(server.lastRequest?.method, 'POST');
-      expect(server.lastRequest?.path, '/auth/login');
-      expect(server.lastRequest?.body['email'], 'customer@example.com');
-      expect(server.lastRequest?.body['password'], 'secret');
+      final loginRequest = server.requestFor('/auth/login');
+      expect(loginRequest?.method, 'POST');
+      expect(loginRequest?.path, '/auth/login');
+      expect(loginRequest?.body['email'], 'customer@example.com');
+      expect(loginRequest?.body['password'], 'secret');
       expect(container.read(authProvider), isA<AuthAuthenticated>());
       expect(find.text('Home'), findsOneWidget);
       expect(find.byType(LoginScreen), findsNothing);

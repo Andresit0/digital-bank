@@ -63,6 +63,13 @@ class ApiTestServer implements HttpClientAdapter {
 
   ApiTestRequest? get lastRequest => requests.isEmpty ? null : requests.last;
 
+  ApiTestRequest? requestFor(String path) {
+    for (final request in requests.reversed) {
+      if (request.path == path) return request;
+    }
+    return null;
+  }
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,

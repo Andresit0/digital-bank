@@ -28,6 +28,7 @@ class ApiHttpServer {
     String accessToken = 'test-access-token',
     Object? accounts,
     Object? movements,
+    Object? experience,
   }) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final instance = ApiHttpServer._(server);
@@ -36,6 +37,7 @@ class ApiHttpServer {
       accessToken: accessToken,
       accounts: accounts,
       movements: movements,
+      experience: experience,
     );
     return instance;
   }
@@ -61,6 +63,7 @@ class ApiHttpServer {
     required String accessToken,
     required Object? accounts,
     required Object? movements,
+    required Object? experience,
   }) {
     _server.listen((request) async {
       final bodyText = await utf8.decoder.bind(request).join();
@@ -103,6 +106,18 @@ class ApiHttpServer {
           break;
         case '/accounts':
           _respond(request, HttpStatus.ok, accounts ?? const <dynamic>[]);
+          break;
+        case '/experience/home':
+          _respond(
+            request,
+            HttpStatus.ok,
+            experience ??
+                {
+                  'experience': 'account_home',
+                  'version': 1,
+                  'sections': <dynamic>[],
+                },
+          );
           break;
         default:
           _respond(request, HttpStatus.notFound, {'message': 'not found'});
