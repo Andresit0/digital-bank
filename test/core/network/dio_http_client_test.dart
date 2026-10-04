@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:digital_bank/core/network/dio_http_client.dart';
-import 'package:digital_bank/core/network/network_exception.dart';
+import 'package:digital_bank/shared/exceptions/network_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _TestHttpClientAdapter implements HttpClientAdapter {

@@ -1,5 +1,6 @@
+import 'package:digital_bank/shared/error/app_error.dart';
+
 import '../domain/entities/auth_session.dart';
-import '../domain/errors/auth_error.dart';
 
 sealed class AuthState {
   const AuthState();
@@ -26,5 +27,5 @@ final class AuthAuthenticated extends AuthState {
 final class AuthFailure extends AuthState {
   const AuthFailure(this.error);
 
-  final AuthError error;
+  final AppError error;
 }

@@ -75,8 +75,8 @@ AuthRepositoryImpl    ->  infrastructure outcomes <-> domain outcomes
 
 `AuthRemoteDataSource` executes the HTTP request and transforms a successful
 response into `AuthResponseModel`. It does not know authentication business
-rules. `AuthRepositoryImpl` translates infrastructure outcomes (`HttpResponse`,
-`NetworkException`) into the domain contract (`AuthSession`, `AuthError`).
+rules. `AuthRepositoryImpl` puts the data-source result behind `guard()` and
+returns the domain contract `Result<AuthSession>`.
 
 ## AuthRemoteDataSource
 
@@ -99,16 +99,18 @@ abstract interface class AuthRemoteDataSource {
 ## Error Mapping
 
 ```text
-HTTP 200              -> AuthSession
-HTTP 401              -> InvalidCredentials
-HTTP 5xx              -> Network
-timeout / connection  -> Network
+HTTP 200              -> Success(AuthSession)
+HTTP 401              -> Failure(ApiError 401)
+HTTP 5xx              -> Failure(ApiError 5xx)
+timeout / connection  -> Failure(NetworkError)
+other Exception       -> Failure(UnexpectedError)
 ```
 
-The mapping is performed by `AuthRepositoryImpl`, not by `AuthRemoteDataSource`.
-`NetworkException` from the network boundary is converted to the corresponding
-`AuthError` in the repository implementation. `DioException` never crosses into
-the domain or presentation.
+The mapping is performed by `guard()` (from `shared/error`) at the repository
+boundary, not by `AuthRemoteDataSource`. `guard()` converts `NetworkException`
+and other exceptions from the network boundary into the corresponding `AppError`
+carried by `Result.failure`. `DioException` never crosses into the domain or
+presentation.
 
 ## Configuration
 

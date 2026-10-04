@@ -1,7 +1,7 @@
-import 'package:digital_bank/core/network/network_exception.dart';
+import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/error/result_guard.dart';
 
 import '../../domain/entities/account.dart';
-import '../../domain/errors/accounts_error.dart';
 import '../../domain/repositories/accounts_repository.dart';
 import '../datasources/accounts_remote_data_source.dart';
 import '../models/account_model.dart';
@@ -12,14 +12,10 @@ class AccountsRepositoryImpl implements AccountsRepository {
   final AccountsRemoteDataSource _remoteDataSource;
 
   @override
-  Future<List<Account>> fetchAccounts() async {
-    try {
-      final models = await _remoteDataSource.fetchAccounts();
-      return models.map(_toEntity).toList();
-    } on NetworkException catch (error) {
-      throw _mapError(error);
-    }
-  }
+  Future<Result<List<Account>>> fetchAccounts() => guard(() async {
+    final models = await _remoteDataSource.fetchAccounts();
+    return models.map(_toEntity).toList();
+  });
 
   Account _toEntity(AccountModel model) {
     return Account(
@@ -31,12 +27,5 @@ class AccountsRepositoryImpl implements AccountsRepository {
       maskedNumber: model.maskedNumber,
       availableBalance: model.availableBalance,
     );
-  }
-
-  AccountsError _mapError(NetworkException error) {
-    if (error.statusCode == 401) {
-      return AccountsError.invalidCredentials;
-    }
-    return AccountsError.network;
   }
 }

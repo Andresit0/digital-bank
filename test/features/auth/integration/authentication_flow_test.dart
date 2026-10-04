@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:digital_bank/app/app.dart';
 import 'package:digital_bank/app/di/router/router_provider.dart';
 import 'package:digital_bank/core/network/network_providers.dart';
-import 'package:digital_bank/features/auth/domain/errors/auth_error.dart';
+import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/features/auth/presentation/auth_state.dart';
 import 'package:digital_bank/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:digital_bank/features/auth/presentation/screens/login_screen.dart';
@@ -94,7 +94,10 @@ void main() {
 
       final state = container.read(authProvider);
       expect(state, isA<AuthFailure>());
-      expect((state as AuthFailure).error, AuthError.invalidCredentials);
+      expect(
+        (state as AuthFailure).error,
+        isA<ApiError>().having((error) => error.statusCode, 'statusCode', 401),
+      );
       expect(find.text('Invalid credentials'), findsOneWidget);
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Home'), findsNothing);
@@ -115,7 +118,10 @@ void main() {
 
       final state = container.read(authProvider);
       expect(state, isA<AuthFailure>());
-      expect((state as AuthFailure).error, AuthError.network);
+      expect(
+        (state as AuthFailure).error,
+        isA<ApiError>().having((error) => error.statusCode, 'statusCode', 500),
+      );
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Home'), findsNothing);
     });
@@ -137,7 +143,7 @@ void main() {
 
       final state = container.read(authProvider);
       expect(state, isA<AuthFailure>());
-      expect((state as AuthFailure).error, AuthError.network);
+      expect((state as AuthFailure).error, isA<NetworkError>());
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Home'), findsNothing);
     });

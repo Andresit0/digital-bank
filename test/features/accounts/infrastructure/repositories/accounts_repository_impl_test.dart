@@ -1,9 +1,10 @@
-import 'package:digital_bank/core/network/network_exception.dart';
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
-import 'package:digital_bank/features/accounts/domain/errors/accounts_error.dart';
 import 'package:digital_bank/features/accounts/infrastructure/datasources/accounts_remote_data_source.dart';
 import 'package:digital_bank/features/accounts/infrastructure/models/account_model.dart';
 import 'package:digital_bank/features/accounts/infrastructure/repositories/accounts_repository_impl.dart';
+import 'package:digital_bank/shared/error/app_error.dart';
+import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/exceptions/network_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeDataSource implements AccountsRemoteDataSource {
@@ -23,7 +24,7 @@ class _FakeDataSource implements AccountsRemoteDataSource {
 
 void main() {
   group('AccountsRepositoryImpl', () {
-    test('maps models to domain accounts', () async {
+    test('ACC-REPO-001 success returns Success(List<Account>)', () async {
       final repository = AccountsRepositoryImpl(
         _FakeDataSource(
           models: const [
@@ -38,24 +39,16 @@ void main() {
         ),
       );
 
-      final accounts = await repository.fetchAccounts();
+      final result = await repository.fetchAccounts();
 
+      expect(result, isA<Success<List<Account>>>());
+      final accounts = (result as Success<List<Account>>).data;
       expect(accounts, hasLength(1));
       expect(accounts.first, isA<Account>());
       expect(accounts.first.type, AccountType.savings);
     });
 
-    test('returns an empty list for an empty response', () async {
-      final repository = AccountsRepositoryImpl(
-        _FakeDataSource(models: const []),
-      );
-
-      final accounts = await repository.fetchAccounts();
-
-      expect(accounts, isEmpty);
-    });
-
-    test('maps 401 to AccountsError.invalidCredentials', () async {
+    test('ACC-REPO-002 401 returns Failure(ApiError 401)', () async {
       final repository = AccountsRepositoryImpl(
         _FakeDataSource(
           error: const NetworkException(
@@ -65,19 +58,15 @@ void main() {
         ),
       );
 
-      expect(
-        () => repository.fetchAccounts(),
-        throwsA(
-          isA<AccountsError>().having(
-            (error) => error,
-            'error',
-            AccountsError.invalidCredentials,
-          ),
-        ),
-      );
+      final result = await repository.fetchAccounts();
+
+      expect(result, isA<Failure<List<Account>>>());
+      final error = (result as Failure<List<Account>>).error;
+      expect(error, isA<ApiError>());
+      expect((error as ApiError).statusCode, 401);
     });
 
-    test('maps 5xx to AccountsError.network', () async {
+    test('ACC-REPO-003 5xx returns Failure(ApiError 500)', () async {
       final repository = AccountsRepositoryImpl(
         _FakeDataSource(
           error: const NetworkException(
@@ -87,58 +76,47 @@ void main() {
         ),
       );
 
-      expect(
-        () => repository.fetchAccounts(),
-        throwsA(
-          isA<AccountsError>().having(
-            (error) => error,
-            'error',
-            AccountsError.network,
-          ),
-        ),
-      );
+      final result = await repository.fetchAccounts();
+
+      expect(result, isA<Failure<List<Account>>>());
+      final error = (result as Failure<List<Account>>).error;
+      expect(error, isA<ApiError>());
+      expect((error as ApiError).statusCode, 500);
     });
 
     test(
-      'maps a transport failure without status to AccountsError.network',
+      'ACC-REPO-004 transport failure returns Failure(NetworkError)',
       () async {
         final repository = AccountsRepositoryImpl(
           _FakeDataSource(error: const NetworkException(message: 'timeout')),
         );
 
-        expect(
-          () => repository.fetchAccounts(),
-          throwsA(
-            isA<AccountsError>().having(
-              (error) => error,
-              'error',
-              AccountsError.network,
-            ),
-          ),
-        );
+        final result = await repository.fetchAccounts();
+
+        expect(result, isA<Failure<List<Account>>>());
+        expect((result as Failure<List<Account>>).error, isA<NetworkError>());
       },
     );
 
-    test('maps an invalid payload to AccountsError.network', () async {
-      final repository = AccountsRepositoryImpl(
-        _FakeDataSource(
-          error: const NetworkException(
-            message: 'invalid accounts payload',
-            statusCode: 200,
+    test(
+      'ACC-REPO-005 invalid payload (200) returns Failure(ApiError 200)',
+      () async {
+        final repository = AccountsRepositoryImpl(
+          _FakeDataSource(
+            error: const NetworkException(
+              message: 'invalid accounts payload',
+              statusCode: 200,
+            ),
           ),
-        ),
-      );
+        );
 
-      expect(
-        () => repository.fetchAccounts(),
-        throwsA(
-          isA<AccountsError>().having(
-            (error) => error,
-            'error',
-            AccountsError.network,
-          ),
-        ),
-      );
-    });
+        final result = await repository.fetchAccounts();
+
+        expect(result, isA<Failure<List<Account>>>());
+        final error = (result as Failure<List<Account>>).error;
+        expect(error, isA<ApiError>());
+        expect((error as ApiError).statusCode, 200);
+      },
+    );
   });
 }

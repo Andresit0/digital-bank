@@ -53,7 +53,7 @@ loading
    |
    +--> empty
    |
-   +--> failure(AccountsError)
+   +--> failure(AppError)
 ```
 
 ## Business Rules

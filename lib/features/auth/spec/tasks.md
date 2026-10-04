@@ -11,14 +11,15 @@ Each implementation step follows RED to GREEN to REFACTOR.
    - Tests fail because the implementation does not exist yet.
 
 3. DOMAIN
-   - Implement `AuthSession`, `AuthRepository`, `AuthState`, `AuthError`.
+   - Implement `AuthSession`, `AuthRepository`, `AuthState`.
+   - The domain depends on `shared/error` (`Result`, `AppError`).
    - RED to GREEN to REFACTOR.
 
 4. INFRASTRUCTURE
    - Implement `AuthResponseModel`.
    - Implement `AuthRemoteDataSource` using `HttpClient`.
-   - Implement `AuthRepositoryImpl`.
-   - Map HTTP and transport outcomes to `AuthError` in `AuthRepositoryImpl`.
+   - Implement `AuthRepositoryImpl` behind `guard()`.
+   - Map infrastructure outcomes through `guard()` into `Result<AuthSession>`.
    - Keep transport-specific types out of presentation and domain.
    - RED to GREEN to REFACTOR.
 
@@ -29,6 +30,7 @@ Each implementation step follows RED to GREEN to REFACTOR.
 
 6. PRESENTATION
    - Implement `AuthNotifier`, `authProvider`, and `LoginScreen`.
+   - Register failures through `ILogger` at the notifier boundary.
    - RED to GREEN to REFACTOR.
 
 7. INTEGRATION

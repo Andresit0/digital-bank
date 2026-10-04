@@ -1,29 +1,33 @@
 import 'package:digital_bank/features/auth/domain/entities/auth_session.dart';
 import 'package:digital_bank/features/auth/domain/repositories/auth_repository.dart';
+import 'package:digital_bank/shared/error/result.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
-  Future<AuthSession> login({
+  Future<Result<AuthSession>> login({
     required String email,
     required String password,
   }) async {
-    return const AuthSession(accessToken: 'token-123');
+    return const Success(AuthSession(accessToken: 'token-123'));
   }
 }
 
 void main() {
   group('AuthRepository contract', () {
-    test('login returns an AuthSession for valid credentials', () async {
-      final repository = _FakeAuthRepository();
+    test(
+      'login returns Success with an AuthSession for valid credentials',
+      () async {
+        final repository = _FakeAuthRepository();
 
-      final session = await repository.login(
-        email: 'customer@example.com',
-        password: 'secret',
-      );
+        final result = await repository.login(
+          email: 'customer@example.com',
+          password: 'secret',
+        );
 
-      expect(session, isA<AuthSession>());
-      expect(session.accessToken, isNotEmpty);
-    });
+        expect(result, isA<Success<AuthSession>>());
+        expect((result as Success<AuthSession>).data.accessToken, isNotEmpty);
+      },
+    );
   });
 }

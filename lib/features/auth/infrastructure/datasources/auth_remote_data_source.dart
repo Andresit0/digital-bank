@@ -1,5 +1,5 @@
 import 'package:digital_bank/core/network/http_client.dart';
-import 'package:digital_bank/core/network/network_exception.dart';
+import 'package:digital_bank/shared/exceptions/network_exception.dart';
 
 import '../models/auth_response_model.dart';
 

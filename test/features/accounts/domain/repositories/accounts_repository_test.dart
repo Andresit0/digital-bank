@@ -1,5 +1,6 @@
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
 import 'package:digital_bank/features/accounts/domain/repositories/accounts_repository.dart';
+import 'package:digital_bank/shared/error/result.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeAccountsRepository implements AccountsRepository {
@@ -8,7 +9,7 @@ class _FakeAccountsRepository implements AccountsRepository {
   final List<Account> _accounts;
 
   @override
-  Future<List<Account>> fetchAccounts() async => _accounts;
+  Future<Result<List<Account>>> fetchAccounts() async => Success(_accounts);
 }
 
 void main() {
@@ -24,18 +25,20 @@ void main() {
         ),
       ]);
 
-      final accounts = await repository.fetchAccounts();
+      final result = await repository.fetchAccounts();
 
-      expect(accounts, hasLength(1));
-      expect(accounts.first, isA<Account>());
+      expect(result, isA<Success<List<Account>>>());
+      expect((result as Success<List<Account>>).data, hasLength(1));
+      expect(result.data.first, isA<Account>());
     });
 
     test('fetchAccounts can return an empty list', () async {
       final repository = _FakeAccountsRepository(const []);
 
-      final accounts = await repository.fetchAccounts();
+      final result = await repository.fetchAccounts();
 
-      expect(accounts, isEmpty);
+      expect(result, isA<Success<List<Account>>>());
+      expect((result as Success<List<Account>>).data, isEmpty);
     });
   });
 }

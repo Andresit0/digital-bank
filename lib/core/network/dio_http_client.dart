@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'http_client.dart';
-import 'network_exception.dart';
+import '../../shared/exceptions/network_exception.dart';
 
 class DioHttpClient implements HttpClient {
   DioHttpClient(this._dio);

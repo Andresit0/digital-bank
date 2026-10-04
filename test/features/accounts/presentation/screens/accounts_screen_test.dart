@@ -1,28 +1,25 @@
 import 'package:digital_bank/features/accounts/di/accounts_providers.dart';
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
-import 'package:digital_bank/features/accounts/domain/errors/accounts_error.dart';
 import 'package:digital_bank/features/accounts/domain/repositories/accounts_repository.dart';
 import 'package:digital_bank/features/accounts/presentation/screens/accounts_screen.dart';
+import 'package:digital_bank/shared/error/app_error.dart';
+import 'package:digital_bank/shared/error/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeAccountsRepository implements AccountsRepository {
-  _FakeAccountsRepository({this.accounts, this.error, this.delay});
+  _FakeAccountsRepository({this.result, this.delay});
 
-  final List<Account>? accounts;
-  final Object? error;
+  final Result<List<Account>>? result;
   final Duration? delay;
 
   @override
-  Future<List<Account>> fetchAccounts() async {
+  Future<Result<List<Account>>> fetchAccounts() async {
     if (delay != null) {
       await Future<void>.delayed(delay!);
     }
-    if (error != null) {
-      throw error!;
-    }
-    return accounts!;
+    return result ?? const Success<List<Account>>([]);
   }
 }
 
@@ -39,7 +36,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           _FakeAccountsRepository(
-            accounts: const [],
+            result: const Success<List<Account>>([]),
             delay: const Duration(seconds: 1),
           ),
         ),
@@ -55,7 +52,7 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           _FakeAccountsRepository(
-            accounts: const [
+            result: const Success<List<Account>>([
               Account(
                 id: 'acc-1',
                 type: AccountType.savings,
@@ -70,7 +67,7 @@ void main() {
                 maskedNumber: '****5678',
                 availableBalance: 20.0,
               ),
-            ],
+            ]),
           ),
         ),
       );
@@ -86,7 +83,11 @@ void main() {
 
     testWidgets('WID-ACC-003 shows the error state', (tester) async {
       await tester.pumpWidget(
-        _wrap(_FakeAccountsRepository(error: AccountsError.network)),
+        _wrap(
+          _FakeAccountsRepository(
+            result: const Failure<List<Account>>(ApiError(statusCode: 500)),
+          ),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -97,7 +98,9 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _wrap(_FakeAccountsRepository(accounts: const [])),
+        _wrap(
+          _FakeAccountsRepository(result: const Success<List<Account>>([])),
+        ),
       );
       await tester.pumpAndSettle();
 

@@ -1,8 +1,8 @@
+import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/presentation/theme/app_colors.dart';
-import '../../domain/errors/auth_error.dart';
 import '../auth_state.dart';
 import '../notifiers/auth_notifier.dart';
 
@@ -67,7 +67,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return null;
     }
 
-    if (state.error == AuthError.invalidCredentials) {
+    final error = state.error;
+    if (error is ApiError && error.statusCode == 401) {
       return 'Invalid credentials';
     }
 
