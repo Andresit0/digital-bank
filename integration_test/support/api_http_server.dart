@@ -21,7 +21,7 @@ enum ApiHttpBehavior {
 }
 
 class ApiHttpServer {
-  ApiHttpServer._(this._server);
+  ApiHttpServer._(this._server, this._experience);
 
   static Future<ApiHttpServer> start({
     ApiHttpBehavior behavior = ApiHttpBehavior.success,
@@ -31,19 +31,21 @@ class ApiHttpServer {
     Object? experience,
   }) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    final instance = ApiHttpServer._(server);
+    final instance = ApiHttpServer._(server, experience);
     instance._listen(
       behavior: behavior,
       accessToken: accessToken,
       accounts: accounts,
       movements: movements,
-      experience: experience,
     );
     return instance;
   }
 
   final HttpServer _server;
+  Object? _experience;
   final List<ApiHttpRequest> requests = [];
+
+  set experience(Object? value) => _experience = value;
 
   int get port => _server.port;
 
@@ -63,7 +65,6 @@ class ApiHttpServer {
     required String accessToken,
     required Object? accounts,
     required Object? movements,
-    required Object? experience,
   }) {
     _server.listen((request) async {
       final bodyText = await utf8.decoder.bind(request).join();
@@ -111,7 +112,7 @@ class ApiHttpServer {
           _respond(
             request,
             HttpStatus.ok,
-            experience ??
+            _experience ??
                 {
                   'experience': 'account_home',
                   'version': 1,
