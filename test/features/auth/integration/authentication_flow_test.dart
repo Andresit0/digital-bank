@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../support/auth_test_server.dart';
+import '../../../support/api_test_server.dart';
 
-ProviderContainer _containerFor(AuthTestServer server) {
+ProviderContainer _containerFor(ApiTestServer server) {
   return ProviderContainer(
     overrides: [
       dioProvider.overrideWithValue(
@@ -53,7 +53,9 @@ Future<void> _submitLogin(
 void main() {
   group('Authentication integration flow', () {
     testWidgets('INT-AUTH-001 successful login reaches home', (tester) async {
-      final server = AuthTestServer.success();
+      final server = ApiTestServer.success({
+        'accessToken': 'test-access-token',
+      });
       final container = _containerFor(server);
       addTearDown(container.dispose);
 
@@ -78,7 +80,7 @@ void main() {
     testWidgets('INT-AUTH-002 invalid credentials stay on login', (
       tester,
     ) async {
-      final server = AuthTestServer.invalidCredentials();
+      final server = ApiTestServer.unauthorized();
       final container = _containerFor(server);
       addTearDown(container.dispose);
 
@@ -99,7 +101,7 @@ void main() {
     });
 
     testWidgets('INT-AUTH-003 server error stays on login', (tester) async {
-      final server = AuthTestServer.serverError();
+      final server = ApiTestServer.serverError();
       final container = _containerFor(server);
       addTearDown(container.dispose);
 
@@ -121,7 +123,7 @@ void main() {
     testWidgets('INT-AUTH-004 transport failure maps to network error', (
       tester,
     ) async {
-      final server = AuthTestServer.closeConnection();
+      final server = ApiTestServer.closeConnection();
       final container = _containerFor(server);
       addTearDown(container.dispose);
 
@@ -141,7 +143,9 @@ void main() {
     });
 
     testWidgets('INT-AUTH-005 logout returns to login', (tester) async {
-      final server = AuthTestServer.success();
+      final server = ApiTestServer.success({
+        'accessToken': 'test-access-token',
+      });
       final container = _containerFor(server);
       addTearDown(container.dispose);
 
@@ -164,7 +168,9 @@ void main() {
     testWidgets('INT-AUTH-006 protected route without session redirects', (
       tester,
     ) async {
-      final server = AuthTestServer.success();
+      final server = ApiTestServer.success({
+        'accessToken': 'test-access-token',
+      });
       final container = _containerFor(server);
       addTearDown(container.dispose);
 
