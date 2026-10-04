@@ -1,0 +1,1 @@
+enum QuickActionType { viewMovements, viewAccounts }
