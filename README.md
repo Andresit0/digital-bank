@@ -6,9 +6,10 @@ Flutter implementation for the Senior Front-End Technical Assessment.
 
 Current phase: Core product features
 
-Authentication, Accounts (accounts, available balances), and Movements
-(transaction history and detail) are implemented and integrated into the
-application. Shared error handling, development logging, and production
+Authentication, Accounts (accounts, available balances), Movements
+(transaction history and detail), and Dynamic Experience (remotely configured,
+schema-controlled experience composed on Home) are implemented and integrated
+into the application. Shared error handling, development logging, and production
 observability are implemented as cross-cutting foundations. Additional core
 product features are being developed incrementally using Specification-Driven
 Development (SDD) and Test-Driven Development (TDD).
@@ -16,7 +17,7 @@ Development (SDD) and Test-Driven Development (TDD).
 Implemented customer journey:
 
 ```text
-Login -> Home -> Accounts -> Movements
+Login -> Home -> Dynamic Experience -> Accounts -> Movements
 ```
 
 ## Requirements
@@ -81,6 +82,7 @@ Feature specifications are maintained alongside each feature under
 - `lib/features/auth/spec/`
 - `lib/features/accounts/spec/`
 - `lib/features/movements/spec/`
+- `lib/features/experience/spec/`
 
 Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
@@ -89,6 +91,10 @@ Documentation will be added progressively as the corresponding engineering decis
 - [Architecture](docs/architecture/README.md)
   Defines the application structure, dependency boundaries, SDD/TDD workflow,
   and initial architectural decisions.
+
+- [ADR-005 — Dynamic Personalization](docs/architecture/adr/005-dynamic-personalization.md)
+  Defines the remotely configured, schema-controlled experience composed at
+  runtime on Home (supported sections, controlled intents, and scope boundaries).
 
 - [PR12 — Error Handling and Development Logging](docs/architecture/pr12-error-handling-and-development-logging.md)
   Defines the shared error model, `Result<T>`, the error mapping boundary, the
@@ -122,6 +128,7 @@ flutter test integration_test/auth/authentication_flow_test.dart
 flutter test integration_test/accounts/accounts_navigation_test.dart
 flutter test integration_test/accounts/accounts_display_test.dart
 flutter test integration_test/movements/movements_flow_test.dart
+flutter test integration_test/experience/experience_flow_test.dart
 ```
 
 If multiple devices or simulators are available, specify the target with `-d <device-id>`.

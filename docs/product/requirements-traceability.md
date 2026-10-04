@@ -248,7 +248,7 @@ EC-002 Engineering Quality
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | REQ-001 | Requirement | Customer onboarding and authentication | Functional | Product, Security | Minimum Scope — Onboarding and authentication | Explicit | Critical | Auth feature with session management | REQ-001 → ADR-002 → auth feature → unit/widget tests → evidence | Implemented | `features/auth/` (domain/infrastructure/presentation, login flow, in-memory session) | `test/features/auth/` (domain, infrastructure, presentation, routing) | `features/auth/spec/` | Login flow and guarded routing verified; session persistence not in scope |
 | REQ-002 | Requirement | Account management, balances, and movements | Functional | Product, Architecture | Minimum Scope — Accounts, balances and movements | Explicit | Critical | Accounts and movements features with repository-based data access | REQ-002 → ADR-001, ADR-003 → accounts + movements features → tests → evidence | Implemented | `features/accounts/` (domain, infrastructure, presentation, DI) and `features/movements/` (domain, infrastructure, presentation, DI) | `test/features/accounts/` + `integration_test/accounts/` + `test/features/movements/` + `integration_test/movements/` | `features/accounts/spec/` and `features/movements/spec/` | Accounts with type, masked number, and available balance; movements list and detail; login → home → accounts → movements flow verified via E2E |
-| REQ-003 | Requirement | Dynamic personalization of experience, content, or functionality | Functional | Product, UX | Minimum Scope — Dynamic personalization | Explicit | High | Remote configuration/content model with controlled schema | REQ-003 → ADR-005 → personalization module → tests → evidence | TBD | TBD | TBD | TBD | TBD |
+| REQ-003 | Requirement | Dynamic personalization of experience, content, or functionality | Functional | Product, UX | Minimum Scope — Dynamic personalization | Explicit | High | Remote configuration/content model with controlled schema | REQ-003 → ADR-005 → experience feature (remote definition, schema-controlled composition) → unit/widget/integration/E2E tests → evidence | Implemented (controlled scope) | `features/experience/` (domain, infrastructure, presentation, DI) composed on `features/home/`; remote `GET /experience/home`, schema-controlled sections (promotion, quick_action) | `test/features/experience/` (domain, infrastructure, presentation, integration) + `integration_test/experience/` | `features/experience/spec/` | Remote, schema-controlled experience composed at runtime on Home; changing the server definition changes the rendered experience without a new app build; user-specific personalization/segmentation, decision engine, feature flags, A/B testing, and CMS are out of scope; BON-002 (dynamically generated experiences) is a secondary effect |
 | REQ-004 | Requirement | Integrate at least one external service or micro-application | Functional | Architecture | Minimum Scope — External service integration | Explicit | High | Repository + adapter integration boundary | REQ-004 → ADR-006 → adapter → integration tests → evidence | TBD | TBD | TBD | TBD | TBD |
 | REQ-005 | Requirement | Push notifications | Functional | Product, UX | Minimum Scope — Push notifications | Explicit | High | Notification service isolated from business features | REQ-005 → ADR-007 → notification service → integration test → evidence | TBD | TBD | TBD | TBD | TBD |
 | REQ-006 | Requirement | Handle limited connectivity | Resilience | Architecture | Minimum Scope — Limited connectivity | Explicit | High | Local cache plus explicit offline/stale states | REQ-006 → ADR-004 → cache/offline → resilience tests → evidence | TBD | TBD | TBD | TBD | TBD |
@@ -368,7 +368,7 @@ ADRs are project decisions, not source requirements. They are driven by one or m
 | ADR-002 | State Management | REQ-001, REQ-002, REQ-009, EC-002 | Planned |
 | ADR-003 | Networking and Error Handling | REQ-006, REQ-007, REQ-008 | Planned |
 | ADR-004 | Resilience and Caching | REQ-006, REQ-007, REQ-008, REQ-009 | Planned |
-| ADR-005 | Dynamic Personalization | REQ-003 | Planned |
+| ADR-005 | Dynamic Personalization | REQ-003 | Accepted |
 | ADR-006 | External Service Integration | REQ-004, REQ-008 | Planned |
 | ADR-007 | Push Notifications | REQ-005 | Planned |
 | ADR-008 | Security and Secrets Handling | SEC-001, SEC-002, SEC-003, SEC-004, SEC-005, EC-002 | Planned |
@@ -432,8 +432,8 @@ Evidence:       TBD
 Current implementation status:
 
 ```text
-Architecture:  ADR-001/002/003 defined (Accepted)
-Implementation: In progress (authentication, accounts)
+Architecture:  ADR-001/002/003 defined (Accepted); ADR-005 (dynamic personalization) and ADR-009 (observability) Accepted
+Implementation: In progress (authentication, accounts, movements, dynamic experience)
 Tests:          In progress (unit, widget, integration-style, E2E)
 Documentation:  In progress
 Evidence:       Partial

@@ -21,16 +21,17 @@ enum ApiHttpBehavior {
 }
 
 class ApiHttpServer {
-  ApiHttpServer._(this._server);
+  ApiHttpServer._(this._server, this._experience);
 
   static Future<ApiHttpServer> start({
     ApiHttpBehavior behavior = ApiHttpBehavior.success,
     String accessToken = 'test-access-token',
     Object? accounts,
     Object? movements,
+    Object? experience,
   }) async {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    final instance = ApiHttpServer._(server);
+    final instance = ApiHttpServer._(server, experience);
     instance._listen(
       behavior: behavior,
       accessToken: accessToken,
@@ -41,7 +42,10 @@ class ApiHttpServer {
   }
 
   final HttpServer _server;
+  Object? _experience;
   final List<ApiHttpRequest> requests = [];
+
+  set experience(Object? value) => _experience = value;
 
   int get port => _server.port;
 
@@ -103,6 +107,18 @@ class ApiHttpServer {
           break;
         case '/accounts':
           _respond(request, HttpStatus.ok, accounts ?? const <dynamic>[]);
+          break;
+        case '/experience/home':
+          _respond(
+            request,
+            HttpStatus.ok,
+            _experience ??
+                {
+                  'experience': 'account_home',
+                  'version': 1,
+                  'sections': <dynamic>[],
+                },
+          );
           break;
         default:
           _respond(request, HttpStatus.notFound, {'message': 'not found'});
