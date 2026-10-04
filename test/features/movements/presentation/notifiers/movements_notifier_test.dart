@@ -1,3 +1,5 @@
+import 'package:digital_bank/core/services/logging/logging_providers.dart';
+import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/features/movements/di/movements_providers.dart';
 import 'package:digital_bank/features/movements/domain/entities/movement.dart';
 import 'package:digital_bank/features/movements/domain/repositories/movements_repository.dart';
@@ -5,8 +7,14 @@ import 'package:digital_bank/features/movements/presentation/movements_state.dar
 import 'package:digital_bank/features/movements/presentation/notifiers/movements_notifier.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/interfaces/i_logger.dart';
+import 'package:digital_bank/shared/interfaces/i_observability.dart';
+import 'package:digital_bank/shared/observability/observability_severity.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../../support/fake_observability.dart';
+import '../../../../support/observability_policy.dart';
 
 class _FakeMovementsRepository implements MovementsRepository {
   _FakeMovementsRepository({this.result});
@@ -23,6 +31,26 @@ class _FakeMovementsRepository implements MovementsRepository {
   }
 }
 
+class _ThrowingLogger implements ILogger {
+  @override
+  void info(String message, {String? technicalMessage}) {
+    throw StateError(
+      'ILogger.info must not be called for a reportable failure',
+    );
+  }
+
+  @override
+  void error(
+    String message, {
+    Object? technicalMessage,
+    StackTrace? stackTrace,
+  }) {
+    throw StateError(
+      'ILogger.error must not be called for a reportable failure',
+    );
+  }
+}
+
 Movement _movement({required String type}) {
   return Movement(
     id: 'mov-1',
@@ -35,9 +63,18 @@ Movement _movement({required String type}) {
   );
 }
 
-ProviderContainer _containerWith(MovementsRepository repository) {
+ProviderContainer _containerWith(
+  MovementsRepository repository, {
+  IObservability? observability,
+  ILogger? logger,
+}) {
   return ProviderContainer(
-    overrides: [movementsRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      movementsRepositoryProvider.overrideWithValue(repository),
+      if (observability != null)
+        observabilityProvider.overrideWithValue(observability),
+      if (logger != null) loggerProvider.overrideWithValue(logger),
+    ],
   );
 }
 
@@ -98,5 +135,85 @@ void main() {
       expect(state, isA<MovementsFailure>());
       expect((state as MovementsFailure).error, isA<ApiError>());
     });
+
+    test(
+      'failure reports exactly one event and does not use ILogger',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeMovementsRepository(
+            result: const Failure<List<Movement>>(NetworkError()),
+          ),
+          observability: observability,
+          logger: _ThrowingLogger(),
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(movementsProvider.notifier)
+            .load(accountId: 'acc-1');
+
+        expect(observability.events, hasLength(1));
+      },
+    );
+
+    test('captured events respect the sensitive-data policy', () async {
+      final observability = FakeObservability();
+      final container = _containerWith(
+        _FakeMovementsRepository(
+          result: const Failure<List<Movement>>(
+            NetworkError(technicalMessage: 'connection refused'),
+          ),
+        ),
+        observability: observability,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(movementsProvider.notifier).load(accountId: 'acc-1');
+
+      expectEventsRespectSensitiveDataPolicy(observability.events);
+    });
+
+    test('server error reports movements_load_failed with metadata', () async {
+      final observability = FakeObservability();
+      final container = _containerWith(
+        _FakeMovementsRepository(
+          result: const Failure<List<Movement>>(ApiError(statusCode: 500)),
+        ),
+        observability: observability,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(movementsProvider.notifier).load(accountId: 'acc-1');
+
+      final event = observability.events.single;
+      expect(event.name, 'movements_load_failed');
+      expect(event.severity, ObservabilitySeverity.warning);
+      expect(event.metadata['errorType'], 'ApiError');
+      expect(event.metadata['statusCode'], 500);
+    });
+
+    test(
+      'network failure reports movements_load_failed without statusCode',
+      () async {
+        final observability = FakeObservability();
+        final container = _containerWith(
+          _FakeMovementsRepository(
+            result: const Failure<List<Movement>>(NetworkError()),
+          ),
+          observability: observability,
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(movementsProvider.notifier)
+            .load(accountId: 'acc-1');
+
+        final event = observability.events.single;
+        expect(event.name, 'movements_load_failed');
+        expect(event.metadata['errorType'], 'NetworkError');
+        expect(event.metadata.containsKey('statusCode'), isFalse);
+      },
+    );
   });
 }
