@@ -134,5 +134,51 @@ void main() {
         expect(find.byType(AccountsScreen), findsOneWidget);
       },
     );
+    testWidgets(
+      'E2E-NAV-003 View movements -> select account -> movements -> back x2',
+      (tester) async {
+        final server = await ApiHttpServer.start(
+          accounts: _accounts,
+          movements: _movements,
+          experience: const {
+            'experience': 'account_home',
+            'version': 1,
+            'sections': [
+              {
+                'type': 'quick_action',
+                'label': 'View movements',
+                'action': 'view_movements',
+              },
+            ],
+          },
+        );
+        addTearDown(server.close);
+        final container = _containerFor(server);
+        addTearDown(container.dispose);
+
+        await _pumpApp(tester, container);
+        expect(find.byType(LoginScreen), findsOneWidget);
+
+        await _login(tester);
+        expect(find.byType(HomeScreen), findsOneWidget);
+
+        await tester.tap(find.text('View movements'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Select an account'), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('account_card_acc-1')));
+        await tester.pumpAndSettle();
+        expect(find.byType(MovementsScreen), findsOneWidget);
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(find.text('Select an account'), findsOneWidget);
+
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeScreen), findsOneWidget);
+      },
+    );
   });
 }

@@ -141,20 +141,41 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('NAV-003 Home -> View movements -> accounts -> back -> Home', (
+    testWidgets(
+      'NAV-003 Home -> View movements -> select account -> movements -> back x2',
+      (tester) async {
+        final router = await _pumpHome(tester);
+
+        await _tap(tester, find.text('View movements'));
+
+        expect(find.text('Select an account'), findsOneWidget);
+
+        await _tap(tester, find.byKey(const Key('account_card_acc-1')));
+
+        expect(find.byType(MovementsScreen), findsOneWidget);
+
+        router.pop();
+        await tester.pumpAndSettle();
+        expect(find.text('Select an account'), findsOneWidget);
+        expect(find.byType(AccountsScreen), findsOneWidget);
+
+        router.pop();
+        await tester.pumpAndSettle();
+        expect(find.byType(HomeScreen), findsOneWidget);
+        expect(router.canPop(), isFalse);
+      },
+    );
+
+    testWidgets('NAV-007 Home -> View accounts -> accounts (no selection)', (
       tester,
     ) async {
       final router = await _pumpHome(tester);
 
-      await _tap(tester, find.text('View movements'));
+      await _tap(tester, find.text('View accounts'));
 
       expect(find.byType(AccountsScreen), findsOneWidget);
+      expect(find.text('Select an account'), findsNothing);
       expect(router.canPop(), isTrue);
-
-      router.pop();
-      await tester.pumpAndSettle();
-
-      expect(find.byType(HomeScreen), findsOneWidget);
     });
 
     testWidgets('NAV-004 Accounts -> movements -> back -> Accounts', (
