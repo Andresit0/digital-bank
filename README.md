@@ -23,14 +23,38 @@ locally, so the startup routing gate skips it on later launches.
 
 PR22 — Final Delivery documents the engineering delivery: AI-assisted
 development, deployment and operations, accessibility evidence, and the visual
-evidence strategy. Screenshot automation and CI artifacts are documented as a
-strategy and implemented later, not in PR22.
+evidence strategy. Screenshot automation and CI artifacts were documented as a
+strategy at that point and implemented later: PR25 implements the screenshots
+(`E2E-VIS-001`), while CI artifact publication remains future work.
 
 Implemented customer journey:
 
 ```text
 Onboarding -> Login -> Home -> Dynamic Experience -> Accounts -> Movements
 ```
+
+| Onboarding | Login | Home |
+|---|---|---|
+| <img src="screenshots/01_onboarding.png" width="220" alt="Onboarding" /> | <img src="screenshots/02_login.png" width="220" alt="Login" /> | <img src="screenshots/03_home.png" width="220" alt="Home" /> |
+
+| Dynamic Experience | Accounts | Movements |
+|---|---|---|
+| <img src="screenshots/04_dynamic_experience.png" width="220" alt="Dynamic Experience" /> | <img src="screenshots/05_accounts.png" width="220" alt="Accounts" /> | <img src="screenshots/06_movements.png" width="220" alt="Movements" /> |
+
+> These screenshots are generated automatically by `E2E-VIS-001`
+> (`integration_test/screenshots_capture_test.dart`), which walks the journey
+> above against the controlled local HTTP server. Regenerate them on a booted
+> iOS simulator or Android device with:
+>
+> ```bash
+> flutter drive \
+>   --driver=test_driver/integration_test.dart \
+>   --target=integration_test/screenshots_capture_test.dart \
+>   -d <device-id>
+> ```
+>
+> The command writes `screenshots/01_onboarding.png` through
+> `screenshots/06_movements.png`.
 
 The customer journey runs against the NestJS backend. Login obtains a JWT that
 is stored in an in-memory session; a shared Dio interceptor attaches
@@ -47,8 +71,16 @@ PR20 — Resilience & Degraded State         Merged
 PR21 — Minimum Viable Onboarding           Merged
 PR22 — Final Delivery                      Merged
 PR23 — Final Quality & Evidence            Merged
-PR24 — Final Validation & Delivery         In progress
+PR24 — Final Validation & Delivery         Merged
+PR25 — Visual Evidence Capture             Merged
 ```
+
+PR25 — Visual Evidence Capture materializes the visual evidence strategy
+deferred by PR22 and PR24. `E2E-VIS-001`
+(`integration_test/screenshots_capture_test.dart`) walks the customer journey
+against the controlled local HTTP server and a driver
+(`test_driver/integration_test.dart`) writes the six screenshots committed under
+`screenshots/`. No product behavior is changed.
 
 Navigation preserves a back history across Home, Accounts, Movements, and
 Movement detail. The View Movements quick action opens Accounts in an explicit
@@ -218,8 +250,8 @@ Additional documentation will be added progressively as the corresponding engine
   items.
 
 - [Visual Evidence Strategy](docs/delivery/visual-evidence-strategy.md)
-  Defines the planned customer-journey screenshots and the future
-  screenshot-to-artifact automation.
+  Defines the customer-journey screenshots and `E2E-VIS-001` (implemented in
+  PR25); the screenshot-to-artifact automation remains the target flow.
 
 ### Testing
 
@@ -242,6 +274,19 @@ flutter test integration_test/onboarding/onboarding_flow_test.dart
 ```
 
 If multiple devices or simulators are available, specify the target with `-d <device-id>`.
+
+Regenerate the customer-journey screenshots used in this README:
+
+```bash
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/screenshots_capture_test.dart \
+  -d <device-id>
+```
+
+The capture writes `screenshots/01_onboarding.png` through
+`screenshots/06_movements.png`, driven by `E2E-VIS-001` against the controlled
+local HTTP server.
 
 The deterministic end-to-end tests run against a controlled local HTTP server and
 cover the full journey (Login -> Accounts -> Movements -> Experience). They do not

@@ -149,7 +149,8 @@ uploaded by the workflows.
 ```text
 Automatic release after CI        -> does not exist
 Automatic deployment              -> does not exist
-Workflow artifacts / screenshots  -> do not exist
+Workflow artifacts                -> do not exist
+Screenshot capture (local, PR25)  -> implemented (not uploaded by CI)
 Signed release builds in CI       -> do not exist
 Production hosting configuration  -> does not exist
 External observability provider   -> not integrated (seam is a no-op)
