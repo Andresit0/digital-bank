@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "569073709462",
+    "project_id": "digital-bank-assessment",
+    "storage_bucket": "digital-bank-assessment.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569073709462:android:71edc09de27ca2462bedb7",
+        "android_client_info": {
+          "package_name": "com.example.digital_bank"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoLn_KFY7KXqkNolAgIMx5nzLLBpp8U9w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
