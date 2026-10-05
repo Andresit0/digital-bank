@@ -1,5 +1,6 @@
 import 'package:digital_bank/core/services/logging/logging_providers.dart';
 import 'package:digital_bank/core/services/observability/observability_provider.dart';
+import 'package:digital_bank/core/session/session_providers.dart';
 import 'package:digital_bank/features/auth/di/auth_providers.dart';
 import 'package:digital_bank/features/auth/domain/entities/auth_session.dart';
 import 'package:digital_bank/features/auth/domain/repositories/auth_repository.dart';
@@ -263,6 +264,61 @@ void main() {
       expect(event.name, 'auth_logout');
       expect(event.severity, ObservabilitySeverity.info);
       expect(event.metadata, isEmpty);
+    });
+
+    test('API-001 successful login stores the token in the session', () async {
+      final container = _containerWith(
+        _FakeAuthRepository(
+          result: const Success(AuthSession(accessToken: 'token-123')),
+        ),
+      );
+      addTearDown(container.dispose);
+
+      final session = container.read(sessionManagerProvider);
+      expect(session.hasSession, isFalse);
+
+      await container
+          .read(authProvider.notifier)
+          .login(email: 'customer@example.com', password: 'secret');
+
+      expect(session.hasSession, isTrue);
+      expect(session.accessToken, 'token-123');
+    });
+
+    test('API-002 invalid login does not store a token', () async {
+      final container = _containerWith(
+        _FakeAuthRepository(
+          result: const Failure<AuthSession>(ApiError(statusCode: 401)),
+        ),
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(authProvider.notifier)
+          .login(email: 'customer@example.com', password: 'wrong');
+
+      expect(container.read(sessionManagerProvider).hasSession, isFalse);
+    });
+
+    test('API-004 logout clears the session token', () async {
+      final container = _containerWith(
+        _FakeAuthRepository(
+          result: const Success(AuthSession(accessToken: 'token-123')),
+        ),
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(authProvider.notifier)
+          .login(email: 'customer@example.com', password: 'secret');
+
+      final session = container.read(sessionManagerProvider);
+      expect(session.hasSession, isTrue);
+
+      container.read(authProvider.notifier).logout();
+
+      expect(session.hasSession, isFalse);
+      expect(session.accessToken, isNull);
     });
   });
 }
