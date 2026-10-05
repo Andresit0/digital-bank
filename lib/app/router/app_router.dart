@@ -7,9 +7,11 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/movements/domain/entities/movement.dart';
 import '../../features/movements/presentation/screens/movement_detail_screen.dart';
 import '../../features/movements/presentation/screens/movements_screen.dart';
+import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 
 enum AppRoute {
   bootstrap(path: '/', name: 'bootstrap'),
+  onboarding(path: '/onboarding', name: 'onboarding'),
   login(path: '/login', name: 'login'),
   home(path: '/home', name: 'home'),
   accounts(path: '/accounts', name: 'accounts'),
@@ -36,6 +38,11 @@ GoRouter createAppRouter({
         name: AppRoute.bootstrap.name,
         builder: (_, _) =>
             const RouterPlaceholderScreen(title: 'Application Bootstrap'),
+      ),
+      GoRoute(
+        path: AppRoute.onboarding.path,
+        name: AppRoute.onboarding.name,
+        builder: (_, _) => const OnboardingScreen(),
       ),
       GoRoute(
         path: AppRoute.login.path,

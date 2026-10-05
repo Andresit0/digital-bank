@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../support/api_http_server.dart';
+import '../support/onboarding_test_support.dart';
 
 ProviderContainer _containerForBaseUrl(String baseUrl) {
   return ProviderContainer(
@@ -25,6 +26,7 @@ ProviderContainer _containerFor(ApiHttpServer server) =>
     _containerForBaseUrl(server.baseUrl);
 
 Future<void> _pumpApp(WidgetTester tester, ProviderContainer container) async {
+  await seedOnboardingCompleted();
   await tester.pumpWidget(
     UncontrolledProviderScope(container: container, child: const MyApp()),
   );

@@ -5,10 +5,14 @@ import 'package:digital_bank/features/auth/presentation/auth_state.dart';
 import 'package:digital_bank/features/auth/di/auth_providers.dart';
 import 'package:digital_bank/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:digital_bank/features/auth/presentation/screens/login_screen.dart';
+import 'package:digital_bank/features/onboarding/di/onboarding_providers.dart';
+import 'package:digital_bank/features/onboarding/presentation/notifiers/onboarding_notifier.dart';
 import 'package:digital_bank/shared/error/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/fake_onboarding_repository.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   _FakeAuthRepository({this.session});
@@ -26,7 +30,12 @@ class _FakeAuthRepository implements AuthRepository {
 
 ProviderContainer _container(AuthRepository repository) {
   return ProviderContainer(
-    overrides: [authRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      authRepositoryProvider.overrideWithValue(repository),
+      onboardingRepositoryProvider.overrideWithValue(
+        FakeOnboardingRepository(completed: true),
+      ),
+    ],
   );
 }
 
@@ -37,6 +46,7 @@ void main() {
     ) async {
       final container = _container(_FakeAuthRepository());
       addTearDown(container.dispose);
+      await container.read(onboardingProvider.notifier).resolve();
 
       final router = container.read(goRouterProvider);
 
@@ -61,6 +71,7 @@ void main() {
         _FakeAuthRepository(session: const AuthSession(accessToken: 't')),
       );
       addTearDown(container.dispose);
+      await container.read(onboardingProvider.notifier).resolve();
 
       await container
           .read(authProvider.notifier)

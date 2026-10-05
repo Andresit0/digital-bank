@@ -6,6 +6,7 @@ import 'di/router/router_provider.dart';
 import '../features/notifications/domain/entities/notification_intent.dart';
 import '../features/notifications/domain/entities/notification_type.dart';
 import '../features/notifications/presentation/notifiers/notification_notifier.dart';
+import '../features/onboarding/presentation/notifiers/onboarding_notifier.dart';
 import 'router/app_router.dart';
 
 class MyApp extends ConsumerStatefulWidget {
@@ -19,6 +20,8 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
+    ref.read(onboardingProvider.notifier).resolve();
+
     final notifier = ref.read(notificationProvider.notifier);
     notifier.onIntent = _handleIntent;
     notifier.listen();

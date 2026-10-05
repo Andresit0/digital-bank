@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import '../support/onboarding_test_support.dart';
+
 const _baseUrl = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: 'http://localhost:3000',
@@ -59,6 +61,7 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
+      await seedOnboardingCompleted();
 
       await tester.pumpWidget(
         UncontrolledProviderScope(container: container, child: const MyApp()),

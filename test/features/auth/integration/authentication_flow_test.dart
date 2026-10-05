@@ -8,12 +8,14 @@ import 'package:digital_bank/shared/interfaces/i_observability.dart';
 import 'package:digital_bank/features/auth/presentation/auth_state.dart';
 import 'package:digital_bank/features/auth/presentation/notifiers/auth_notifier.dart';
 import 'package:digital_bank/features/auth/presentation/screens/login_screen.dart';
+import 'package:digital_bank/features/onboarding/di/onboarding_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../support/api_test_server.dart';
 import '../../../support/fake_observability.dart';
+import '../../../support/fake_onboarding_repository.dart';
 
 ProviderContainer _containerFor(
   ApiTestServer server, {
@@ -33,6 +35,9 @@ ProviderContainer _containerFor(
       ),
       if (observability != null)
         observabilityProvider.overrideWithValue(observability),
+      onboardingRepositoryProvider.overrideWithValue(
+        FakeOnboardingRepository(completed: true),
+      ),
     ],
   );
 }
