@@ -48,6 +48,8 @@ Development diagnostics        Production telemetry
 
 ### Event taxonomy
 
+Original observability events (introduced with PR14):
+
 | Event | Severity | Owner |
 |---|---|---|
 | `app_started` | info | shared |
@@ -59,13 +61,30 @@ Development diagnostics        Production telemetry
 | `accounts_load_failed` | warning | accounts |
 | `movements_load_failed` | warning | movements |
 
+Resilience events (introduced by PR20):
+
+| Event | Severity | Owner |
+|---|---|---|
+| `request_retried` | info | resilience/network |
+| `accounts_stale_served` | warning | accounts |
+| `movements_stale_served` | warning | movements |
+| `experience_degraded` | warning | experience |
+
 Event names are plain strings. Shared owns the generic names; each feature owns
 its namespace (`auth_*`, `accounts_*`), so `shared` does not depend on features.
+
+The PR20 resilience events complement, and do not replace, the PR14 baseline;
+PR14's original scope (including its exclusion of retry/cache/offline) remains
+intact. The stale events carry a controlled resilience metadata value
+`source=cache`, documented in `docs/operations/README.md`.
 
 ### Sensitive data policy (SEC-005)
 
 Allowed metadata keys: `errorType`, `statusCode`, `endpoint` (path without
-query), `feature`, `attempt`.
+query), `feature`, `attempt`, and `source`.
+
+The only currently allowed value for `source` is `cache`, a controlled
+resilience metadata value introduced by PR20.
 
 Never present in an event name or metadata: passwords, access/refresh tokens,
 full account numbers, `maskedNumber`, balances, email or other PII, credentials,
