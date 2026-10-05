@@ -54,7 +54,7 @@ section as rendered on the Home screen.
 one screenshot per step. Its status is **Planned / conceptual**; it is not
 implemented in PR22.
 
-When implemented (PR23), it should:
+When implemented (future work), it should:
 
 - reuse the existing navigation and test helpers rather than introduce a parallel
   harness, for example `integration_test/support/onboarding_test_support.dart`
@@ -91,13 +91,13 @@ GitHub Actions artifacts are the intended retention mechanism for screenshots an
 test outputs. This pipeline is a documented strategy; none of it is implemented,
 and the current workflows do not upload artifacts.
 
-## 6. PR22 / PR23 / PR24 Boundary
+## 6. Responsibility Boundary
 
-| PR | Responsibility for visual evidence |
+| Phase | Responsibility for visual evidence |
 |---|---|
-| PR22 | Define and document this strategy |
-| PR23 | Implement screenshot capture, automation, and artifacts |
-| PR24 | Consolidate the final evidence and traceability |
+| Final Delivery (PR22) | Define and document this strategy |
+| Future work | Implement screenshot capture, automation, and artifacts |
+| Final validation | Consolidate the available evidence and traceability |
 
 ## 7. What Does Not Exist Today
 
@@ -113,7 +113,7 @@ Workflow artifacts                   -> not uploaded
 
 ```text
 BON-003  Automation for development, testing, deployment, or documentation
-         -> Planned: screenshot capture and artifact publication (PR23).
+         -> Planned: screenshot capture and artifact publication (future work).
 REQ-024  Effective use of AI and development tools
          -> Automated visual evidence is part of the intended automation, not yet
             implemented.
@@ -125,5 +125,5 @@ REQ-012  Critical end-to-end flow
 ## 9. Boundaries
 
 This document does not add tests, capture screenshots, modify workflows, or
-upload artifacts. It records the intended approach and keeps the implementation
-for PR23.
+upload artifacts. It records the intended approach and defers the implementation
+to future work.

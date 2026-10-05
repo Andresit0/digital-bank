@@ -63,7 +63,7 @@ Two GitHub Actions workflows validate pull requests to `main`:
 | Workflow | Trigger | Steps |
 |---|---|---|
 | `.github/workflows/flutter-ci.yml` | `pull_request` → `main` | secret guard, Flutter setup, `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build apk --debug` |
-| `.github/workflows/api-ci.yml` | `pull_request` → `main` (paths `api/**`) | Node.js 24 setup, `npm ci`, `npm run build`, `npm run lint`, `npm run test` |
+| `.github/workflows/api-ci.yml` | `pull_request` → `main` (paths `api/**`) | PostgreSQL 16 service (`pg_isready`), Node.js 24 setup, `npm ci`, `npm run build`, `npm run lint`, `npm run test`, `npm run test:integration`, `npm run test:e2e` |
 
 Neither workflow runs on push to `main`, and neither has a release or deployment
 job. Neither uploads artifacts.
