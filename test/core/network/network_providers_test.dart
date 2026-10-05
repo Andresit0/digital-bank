@@ -4,8 +4,12 @@ import 'package:digital_bank/core/network/auth_interceptor.dart';
 import 'package:digital_bank/core/network/dio_http_client.dart';
 import 'package:digital_bank/core/network/http_client.dart';
 import 'package:digital_bank/core/network/network_providers.dart';
+import 'package:digital_bank/core/network/retry_interceptor.dart';
+import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/fake_observability.dart';
 
 class _FakeHttpClient implements HttpClient {
   @override
@@ -73,5 +77,17 @@ void main() {
 
     final dio = container.read(dioProvider);
     expect(dio.interceptors.whereType<AuthInterceptor>(), hasLength(1));
+  });
+
+  test('dioProvider wires the RetryInterceptor with observabilityProvider', () {
+    final fake = FakeObservability();
+    final container = ProviderContainer(
+      overrides: [observabilityProvider.overrideWithValue(fake)],
+    );
+    addTearDown(container.dispose);
+
+    final dio = container.read(dioProvider);
+    final retry = dio.interceptors.whereType<RetryInterceptor>().single;
+    expect(retry.observability, same(fake));
   });
 }
