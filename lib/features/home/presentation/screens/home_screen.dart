@@ -14,7 +14,7 @@ class HomeScreen extends StatelessWidget {
       case QuickActionType.viewAccounts:
         context.push('/accounts');
       case QuickActionType.viewMovements:
-        context.push('/accounts');
+        context.push('/accounts?intent=movements');
     }
   }
 

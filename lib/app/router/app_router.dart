@@ -50,7 +50,10 @@ GoRouter createAppRouter({
       GoRoute(
         path: AppRoute.accounts.path,
         name: AppRoute.accounts.name,
-        builder: (_, _) => const AccountsScreen(),
+        builder: (_, state) => AccountsScreen(
+          selectForMovements:
+              state.uri.queryParameters['intent'] == 'movements',
+        ),
       ),
       GoRoute(
         path: AppRoute.movements.path,

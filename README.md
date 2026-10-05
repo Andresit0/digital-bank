@@ -35,8 +35,9 @@ Navigation Flow Fix                        In Progress
 ```
 
 Navigation preserves a back history across Home, Accounts, Movements, and
-Movement detail. The View Movements quick action opens Accounts as an
-account-selection step before Movements.
+Movement detail. The View Movements quick action opens Accounts in an explicit
+account-selection mode (`Select an account`) before Movements, because the
+movements screen requires a selected account.
 
 ## Requirements
 

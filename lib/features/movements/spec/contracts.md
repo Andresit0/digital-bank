@@ -139,10 +139,12 @@ the domain or presentation.
 Home
     |
     v
-context.push('/accounts')  (View Movements quick action)
+context.push('/accounts?intent=movements')  (View Movements quick action)
     |
     v
-AccountsScreen (account-selection step)
+AccountsScreen [selectForMovements: true]
+    "Select an account"
+    "Choose the account whose movements you want to view."
     |
     v
 AccountCard (Accounts)
@@ -176,9 +178,13 @@ as a rule parameter.
 
 Navigation uses `push` so each transition adds a page to the navigation stack.
 This keeps a coherent back history (`Back` and the iOS edge-swipe) from
-Movements to Accounts and from Movement back to Movements. The View Movements
-quick action opens Accounts as an account-selection step, because the movements
-screen needs an `accountId`; it does not open Movements directly.
+Movements to Accounts and from Movement back to Movements.
+
+The View Movements quick action opens Accounts as an explicit account-selection
+step (`/accounts?intent=movements`), because the movements screen needs an
+`accountId`. The router reads `intent` from `state.uri.queryParameters` and
+passes `selectForMovements` to `AccountsScreen`, which presents the selection
+copy instead of the normal accounts view. It does not open Movements directly.
 
 The detail route `/movements/:id` resolves the `Movement` from the loaded list.
 It does not call the network and there is no detail request. The detail route
