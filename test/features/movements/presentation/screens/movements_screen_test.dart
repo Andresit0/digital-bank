@@ -4,6 +4,7 @@ import 'package:digital_bank/features/movements/domain/repositories/movements_re
 import 'package:digital_bank/features/movements/presentation/screens/movements_screen.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,17 +12,20 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeMovementsRepository implements MovementsRepository {
   _FakeMovementsRepository({this.result, this.delay});
 
-  final Result<List<Movement>>? result;
+  final Result<Read<List<Movement>>>? result;
   final Duration? delay;
 
   @override
-  Future<Result<List<Movement>>> fetchMovements({
+  Future<Result<Read<List<Movement>>>> fetchMovements({
     required String accountId,
   }) async {
     if (delay != null) {
       await Future<void>.delayed(delay!);
     }
-    return result ?? const Success<List<Movement>>([]);
+    return result ??
+        const Success<Read<List<Movement>>>(
+          Read<List<Movement>>([], source: ReadSource.remote),
+        );
   }
 }
 
@@ -50,7 +54,9 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           _FakeMovementsRepository(
-            result: const Success<List<Movement>>([]),
+            result: const Success<Read<List<Movement>>>(
+              Read<List<Movement>>([], source: ReadSource.remote),
+            ),
             delay: const Duration(seconds: 1),
           ),
         ),
@@ -66,10 +72,15 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           _FakeMovementsRepository(
-            result: Success<List<Movement>>([
-              _movement('mov-1', MovementType.credit, 500.0),
-              _movement('mov-2', MovementType.debit, 125.5),
-            ]),
+            result: Success<Read<List<Movement>>>(
+              Read<List<Movement>>(
+                [
+                  _movement('mov-1', MovementType.credit, 500.0),
+                  _movement('mov-2', MovementType.debit, 125.5),
+                ],
+                source: ReadSource.remote,
+              ),
+            ),
           ),
         ),
       );
@@ -84,7 +95,11 @@ void main() {
     testWidgets('WID-MOV-003 shows the empty state', (tester) async {
       await tester.pumpWidget(
         _wrap(
-          _FakeMovementsRepository(result: const Success<List<Movement>>([])),
+          _FakeMovementsRepository(
+            result: const Success<Read<List<Movement>>>(
+              Read<List<Movement>>([], source: ReadSource.remote),
+            ),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -92,11 +107,54 @@ void main() {
       expect(find.byKey(const Key('movements_empty')), findsOneWidget);
     });
 
-    testWidgets('WID-MOV-004 shows the error state', (tester) async {
+    testWidgets('WID-MOV-004 stale state renders the cached movements', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           _FakeMovementsRepository(
-            result: const Failure<List<Movement>>(ApiError(statusCode: 500)),
+            result: Success<Read<List<Movement>>>(
+              Read<List<Movement>>(
+                [_movement('mov-1', MovementType.credit, 500.0)],
+                source: ReadSource.cache,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('movement_tile_mov-1')), findsOneWidget);
+      expect(find.text('+ USD 500.00'), findsOneWidget);
+    });
+
+    testWidgets('WID-MOV-005 stale state exposes a retry action', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          _FakeMovementsRepository(
+            result: Success<Read<List<Movement>>>(
+              Read<List<Movement>>(
+                [_movement('mov-1', MovementType.credit, 500.0)],
+                source: ReadSource.cache,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('movements_retry')), findsOneWidget);
+    });
+
+    testWidgets('WID-MOV-006 shows the error state', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          _FakeMovementsRepository(
+            result: const Failure<Read<List<Movement>>>(
+              ApiError(statusCode: 500),
+            ),
           ),
         ),
       );

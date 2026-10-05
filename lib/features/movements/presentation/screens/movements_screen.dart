@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../shared/presentation/theme/app_colors.dart';
 import '../../../../shared/presentation/widgets/bank_app_bar.dart';
+import '../../domain/entities/movement.dart';
 import '../movements_state.dart';
 import '../notifiers/movements_notifier.dart';
 import '../widgets/movement_tile.dart';
@@ -28,6 +29,13 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
       Future.microtask(
         () => ref.read(movementsProvider.notifier).load(accountId: accountId),
       );
+    }
+  }
+
+  void _retry() {
+    final accountId = widget.accountId;
+    if (accountId != null) {
+      ref.read(movementsProvider.notifier).load(accountId: accountId);
     }
   }
 
@@ -59,40 +67,76 @@ class _MovementsScreenState extends ConsumerState<MovementsScreen> {
                         ),
                       ),
                       MovementsEmpty() => const _MovementsEmptyState(),
-                      MovementsFailure() => const _MovementsErrorState(),
-                      MovementsLoaded(:final movements) => ListView(
-                        children: [
-                          const _MovementsHeader(),
-                          const SizedBox(height: 24),
-                          Semantics(
-                            headingLevel: 2,
-                            child: const Text(
-                              'Account activity',
-                              style: TextStyle(
-                                color: AppColors.darkText,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          for (final movement in movements) ...[
-                            MovementTile(
-                              movement: movement,
-                              onTap: () => context.push(
-                                '/movements/${movement.id}',
-                                extra: movement,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        ],
+                      MovementsFailure() => _MovementsErrorState(
+                        onRetry: _retry,
+                      ),
+                      MovementsStale(:final movements) => _MovementsList(
+                        movements: movements,
+                        onRetry: _retry,
+                      ),
+                      MovementsLoaded(:final movements) => _MovementsList(
+                        movements: movements,
                       ),
                     },
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MovementsList extends StatelessWidget {
+  const _MovementsList({required this.movements, this.onRetry});
+
+  final List<Movement> movements;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        const _MovementsHeader(),
+        const SizedBox(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                headingLevel: 2,
+                child: const Text(
+                  'Account activity',
+                  style: TextStyle(
+                    color: AppColors.darkText,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            if (onRetry != null)
+              TextButton.icon(
+                key: const Key('movements_retry'),
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, color: AppColors.orange),
+                label: const Text(
+                  'Retry',
+                  style: TextStyle(color: AppColors.orange),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        for (final movement in movements) ...[
+          MovementTile(
+            movement: movement,
+            onTap: () => context.push(
+              '/movements/${movement.id}',
+              extra: movement,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ],
     );
   }
 }
@@ -159,20 +203,22 @@ class _MovementsHeader extends StatelessWidget {
 }
 
 class _MovementsErrorState extends StatelessWidget {
-  const _MovementsErrorState();
+  const _MovementsErrorState({required this.onRetry});
+
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      key: Key('movements_error'),
+    return Center(
+      key: const Key('movements_error'),
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _StateIcon(icon: Icons.error_outline, isError: true),
-            SizedBox(height: 18),
-            Text(
+            const _StateIcon(icon: Icons.error_outline, isError: true),
+            const SizedBox(height: 18),
+            const Text(
               'We couldn’t load your movements',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -181,11 +227,21 @@ class _MovementsErrorState extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 8),
+            const Text(
               'Something went wrong. Please try again later.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.secondaryText, fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+            TextButton.icon(
+              key: const Key('movements_retry'),
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, color: AppColors.orange),
+              label: const Text(
+                'Retry',
+                style: TextStyle(color: AppColors.orange),
+              ),
             ),
           ],
         ),

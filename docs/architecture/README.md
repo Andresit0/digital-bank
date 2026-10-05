@@ -143,6 +143,7 @@ The specification defines expected behavior before or alongside implementation. 
 | ADR-001 | Feature-first Clean Architecture | Accepted |
 | ADR-002 | Riverpod for state management | Accepted |
 | ADR-003 | Networking, error handling, and resilience boundaries | Accepted |
+| ADR-004 | Resilience policy (retry, cache, connectivity) | Accepted |
 
 Additional architectural decisions will be documented only when required by
 implementation.
@@ -154,6 +155,7 @@ implementation.
 | [PR12 — Error Handling and Development Logging](pr12-error-handling-and-development-logging.md) | Shared error model, `Result<T>`, logging seam |
 | [PR14 — Production Observability](pr14-production-observability.md) | Provider-agnostic observability seam and event taxonomy |
 | [PR18 — Flutter to NestJS API Integration](pr18-api-integration.md) | In-memory session, Bearer authentication, 401 handling |
+| [PR20 — Resilience & Degraded State](pr20-resilience.md) | Bounded retry, in-memory read cache + `Read<T>`, connectivity abstraction, stale/degraded states |
 
 ## 7. Scope
 

@@ -20,6 +20,12 @@ final class AccountsLoaded extends AccountsState {
   final List<Account> accounts;
 }
 
+final class AccountsStale extends AccountsState {
+  const AccountsStale(this.accounts);
+
+  final List<Account> accounts;
+}
+
 final class AccountsEmpty extends AccountsState {
   const AccountsEmpty();
 }

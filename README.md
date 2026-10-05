@@ -32,7 +32,8 @@ Current milestones:
 ```text
 PR18 — Flutter to NestJS API Integration   Merged
 Navigation Flow Fix                        Merged
-PR19 — External Service Integration        In Progress
+PR19 — External Service Integration        Merged
+PR20 — Resilience & Degraded State         Completed
 ```
 
 Navigation preserves a back history across Home, Accounts, Movements, and
@@ -46,7 +47,17 @@ the FCM registration token, and registers the device installation with the
 NestJS backend. The backend sends a notification (dynamic title/body) through
 the Firebase Admin SDK while preserving routing data (`type`, `movementId`),
 and tapping the notification navigates to Movements. This flow was implemented
-and validated on a physical Android device, pending merge.
+and validated on a physical Android device.
+
+PR20 — Resilience & Degraded State is implemented across the core network
+boundary and the product features: a bounded retry policy (at most 2 retries /
+3 attempts, exponential backoff 300 ms → 600 ms), an in-memory read cache with a
+shared `Read<T>` (remote/cache) contract, a connectivity abstraction, explicit
+stale/degraded states with user-initiated recovery, failure isolation for
+Experience (Home stays usable), and observability of retry/degraded behavior.
+These capabilities cover REQ-006 (limited connectivity), REQ-007 (high
+latency), REQ-008 (partial service unavailability), and REQ-009 (loading,
+retry, cache, and recovery states).
 
 ## Requirements
 
@@ -129,9 +140,17 @@ Documentation will be added progressively as the corresponding engineering decis
   Defines the application structure, dependency boundaries, SDD/TDD workflow,
   and initial architectural decisions.
 
+- [ADR-004 — Resilience Policy](docs/architecture/adr/004-resilience-policy.md)
+  Defines the concrete retry, cache, connectivity, and degraded-state policy
+  implemented on top of the boundaries established by ADR-003.
+
 - [ADR-005 — Dynamic Personalization](docs/architecture/adr/005-dynamic-personalization.md)
   Defines the remotely configured, schema-controlled experience composed at
   runtime on Home (supported sections, controlled intents, and scope boundaries).
+
+- [ADR-009 — Observability and Monitoring](docs/architecture/adr/009-observability-and-monitoring.md)
+  Defines the provider-agnostic observability seam, event taxonomy, severity
+  model, and sensitive-data telemetry policy.
 
 - [PR12 — Error Handling and Development Logging](docs/architecture/pr12-error-handling-and-development-logging.md)
   Defines the shared error model, `Result<T>`, the error mapping boundary, the
@@ -150,6 +169,11 @@ Documentation will be added progressively as the corresponding engineering decis
   Defines the Firebase Cloud Messaging integration on Android, the device
   registration, the NestJS Firebase Admin delivery, the notification
   navigation, and the safe CI validation without credentials.
+
+- [PR20 — Resilience & Degraded State](docs/architecture/pr20-resilience.md)
+  Defines the bounded retry policy, the in-memory read cache and `Read<T>`
+  fallback, the connectivity abstraction, and the explicit stale/degraded
+  states for Accounts, Movements, and Experience.
 
 Additional documentation will be added progressively as the corresponding engineering decisions and implementation work.
 

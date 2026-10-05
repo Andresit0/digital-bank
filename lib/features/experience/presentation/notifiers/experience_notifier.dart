@@ -35,8 +35,8 @@ class ExperienceNotifier extends Notifier<ExperienceState> {
             : ExperienceLoaded(definition);
       },
       failure: (error) {
-        ref.read(observabilityProvider).report(_loadFailedEvent(error));
-        state = ExperienceFailure(_mapError(error));
+        ref.read(observabilityProvider).report(_degradedEvent(error));
+        state = ExperienceDegraded(_mapError(error));
       },
     );
   }
@@ -48,7 +48,7 @@ class ExperienceNotifier extends Notifier<ExperienceState> {
     return ExperienceError.invalidConfiguration;
   }
 
-  ObservabilityEvent _loadFailedEvent(AppError error) {
+  ObservabilityEvent _degradedEvent(AppError error) {
     final metadata = <String, Object?>{
       'error_type': error.runtimeType.toString(),
     };
@@ -56,7 +56,7 @@ class ExperienceNotifier extends Notifier<ExperienceState> {
       metadata['status_code'] = error.statusCode;
     }
     return ObservabilityEvent(
-      name: 'experience_load_failed',
+      name: 'experience_degraded',
       severity: ObservabilitySeverity.warning,
       metadata: metadata,
     );

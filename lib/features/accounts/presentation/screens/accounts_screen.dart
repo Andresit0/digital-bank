@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/presentation/theme/app_colors.dart';
 import '../../../../shared/presentation/widgets/bank_app_bar.dart';
 import '../accounts_state.dart';
+import '../../domain/entities/account.dart';
 import '../notifiers/accounts_notifier.dart';
 import '../widgets/account_card.dart';
 
@@ -23,6 +24,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     super.initState();
     Future.microtask(() => ref.read(accountsProvider.notifier).load());
   }
+
+  void _retry() => ref.read(accountsProvider.notifier).load();
 
   @override
   Widget build(BuildContext context) {
@@ -46,38 +49,81 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   child: CircularProgressIndicator(color: AppColors.orange),
                 ),
                 AccountsEmpty() => const _AccountsEmptyState(),
-                AccountsFailure() => const _AccountsErrorState(),
-                AccountsLoaded(:final accounts) => ListView(
-                  children: [
-                    _AccountsHeader(selectForMovements: selectForMovements),
-                    const SizedBox(height: 28),
-                    Text(
-                      'Your accounts',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    for (final account in accounts) ...[
-                      AccountCard(
-                        account: account,
-                        onTap: () => context.push(
-                          Uri(
-                            path: '/movements',
-                            queryParameters: {'accountId': account.id},
-                          ).toString(),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-                  ],
+                AccountsFailure() => _AccountsErrorState(onRetry: _retry),
+                AccountsStale(:final accounts) => _AccountsList(
+                  accounts: accounts,
+                  selectForMovements: selectForMovements,
+                  onRetry: _retry,
+                ),
+                AccountsLoaded(:final accounts) => _AccountsList(
+                  accounts: accounts,
+                  selectForMovements: selectForMovements,
                 ),
               },
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AccountsList extends StatelessWidget {
+  const _AccountsList({
+    required this.accounts,
+    required this.selectForMovements,
+    this.onRetry,
+  });
+
+  final List<Account> accounts;
+  final bool selectForMovements;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        _AccountsHeader(selectForMovements: selectForMovements),
+        const SizedBox(height: 28),
+        if (onRetry == null)
+          const Text(
+            'Your accounts',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          )
+        else
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Your accounts',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                ),
+              ),
+              TextButton.icon(
+                key: const Key('accounts_retry'),
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, color: AppColors.orange),
+                label: const Text(
+                  'Retry',
+                  style: TextStyle(color: AppColors.orange),
+                ),
+              ),
+            ],
+          ),
+        const SizedBox(height: 14),
+        for (final account in accounts) ...[
+          AccountCard(
+            account: account,
+            onTap: () => context.push(
+              Uri(
+                path: '/movements',
+                queryParameters: {'accountId': account.id},
+              ).toString(),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+      ],
     );
   }
 }
@@ -180,7 +226,9 @@ class _AccountsEmptyState extends StatelessWidget {
 }
 
 class _AccountsErrorState extends StatelessWidget {
-  const _AccountsErrorState();
+  const _AccountsErrorState({required this.onRetry});
+
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -215,6 +263,16 @@ class _AccountsErrorState extends StatelessWidget {
               'We could not load your accounts. Please try again later.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.black54, height: 1.4),
+            ),
+            const SizedBox(height: 24),
+            TextButton.icon(
+              key: const Key('accounts_retry'),
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, color: AppColors.orange),
+              label: const Text(
+                'Retry',
+                style: TextStyle(color: AppColors.orange),
+              ),
             ),
           ],
         ),

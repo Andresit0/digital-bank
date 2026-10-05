@@ -2,6 +2,7 @@ import 'package:digital_bank/core/services/observability/observability_provider.
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/observability/observability_event.dart';
 import 'package:digital_bank/shared/observability/observability_severity.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../di/accounts_providers.dart';
@@ -25,10 +26,16 @@ class AccountsNotifier extends Notifier<AccountsState> {
     final result = await ref.read(accountsRepositoryProvider).fetchAccounts();
 
     result.when(
-      success: (accounts) {
-        state = accounts.isEmpty
+      success: (read) {
+        if (read.source == ReadSource.cache) {
+          ref.read(observabilityProvider).report(_staleServedEvent());
+          state = AccountsStale(read.data);
+          return;
+        }
+
+        state = read.data.isEmpty
             ? const AccountsEmpty()
-            : AccountsLoaded(accounts);
+            : AccountsLoaded(read.data);
       },
       failure: (error) {
         ref.read(observabilityProvider).report(_loadFailedEvent(error));
@@ -48,6 +55,14 @@ class AccountsNotifier extends Notifier<AccountsState> {
       name: 'accounts_load_failed',
       severity: ObservabilitySeverity.warning,
       metadata: metadata,
+    );
+  }
+
+  ObservabilityEvent _staleServedEvent() {
+    return const ObservabilityEvent(
+      name: 'accounts_stale_served',
+      severity: ObservabilitySeverity.warning,
+      metadata: {'source': 'cache'},
     );
   }
 }

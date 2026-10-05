@@ -27,6 +27,7 @@ class _FakeExperienceRepository implements ExperienceRepository {
 Widget _wrap(
   Result<ExperienceDefinition> result, {
   ValueChanged<QuickActionType>? onAction,
+  VoidCallback? onRetry,
   Duration? delay,
 }) {
   return ProviderScope(
@@ -36,7 +37,12 @@ Widget _wrap(
       ),
     ],
     child: MaterialApp(
-      home: Scaffold(body: ExperienceRenderer(onAction: onAction ?? (_) {})),
+      home: Scaffold(
+        body: ExperienceRenderer(
+          onAction: onAction ?? (_) {},
+          onRetry: onRetry,
+        ),
+      ),
     ),
   );
 }
@@ -109,16 +115,64 @@ void main() {
       expect(find.byKey(const Key('experience_fallback')), findsOneWidget);
     });
 
-    testWidgets('WID-EXP-004 shows fallback on failure', (tester) async {
+    testWidgets(
+      'WID-EXP-004 degraded is distinct from the empty fallback',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(const Failure(NetworkError(technicalMessage: 'down'))),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('experience_degraded')), findsOneWidget);
+        expect(find.byKey(const Key('experience_fallback')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'WID-EXP-005 degraded renders the fallback Home experience',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(const Failure(NetworkError(technicalMessage: 'down'))),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const Key('experience_degraded')), findsOneWidget);
+        expect(find.text('Save more this month'), findsNothing);
+        expect(find.text('View movements'), findsNothing);
+      },
+    );
+
+    testWidgets('WID-EXP-006 degraded exposes a retry action', (tester) async {
       await tester.pumpWidget(
-        _wrap(const Failure(NetworkError(technicalMessage: 'down'))),
+        _wrap(
+          const Failure(NetworkError(technicalMessage: 'down')),
+          onRetry: () {},
+        ),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const Key('experience_fallback')), findsOneWidget);
+      expect(find.byKey(const Key('experience_retry')), findsOneWidget);
     });
 
-    testWidgets('WID-EXP-005 quick action expresses its intent', (
+    testWidgets('WID-EXP-007 retry invokes the supplied callback', (
+      tester,
+    ) async {
+      var retried = 0;
+      await tester.pumpWidget(
+        _wrap(
+          const Failure(NetworkError(technicalMessage: 'down')),
+          onRetry: () => retried++,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('experience_retry')));
+      await tester.pumpAndSettle();
+
+      expect(retried, 1);
+    });
+
+    testWidgets('WID-EXP-008 quick action expresses its intent', (
       tester,
     ) async {
       QuickActionType? received;
