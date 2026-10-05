@@ -8,11 +8,13 @@ class ApiTestRequest {
     required this.method,
     required this.path,
     required this.body,
+    this.authorization,
   });
 
   final String method;
   final String path;
   final Map<String, dynamic> body;
+  final String? authorization;
 }
 
 enum ApiTestBehavior { success, serverError, closeConnection }
@@ -22,6 +24,8 @@ class ApiTestServer implements HttpClientAdapter {
     required this.behavior,
     required this.statusCode,
     required this.responseData,
+    this.requiredBearer,
+    this.routes,
   });
 
   factory ApiTestServer.success(Object? data, {int statusCode = 200}) {
@@ -29,6 +33,33 @@ class ApiTestServer implements HttpClientAdapter {
       behavior: ApiTestBehavior.success,
       statusCode: statusCode,
       responseData: data,
+    );
+  }
+
+  factory ApiTestServer.protected(
+    Object? data, {
+    required String requiredBearer,
+    int statusCode = 200,
+  }) {
+    return ApiTestServer._(
+      behavior: ApiTestBehavior.success,
+      statusCode: statusCode,
+      responseData: data,
+      requiredBearer: requiredBearer,
+    );
+  }
+
+  factory ApiTestServer.routed({
+    required Map<String, Object?> routes,
+    required String requiredBearer,
+    int statusCode = 200,
+  }) {
+    return ApiTestServer._(
+      behavior: ApiTestBehavior.success,
+      statusCode: statusCode,
+      responseData: null,
+      requiredBearer: requiredBearer,
+      routes: routes,
     );
   }
 
@@ -59,6 +90,8 @@ class ApiTestServer implements HttpClientAdapter {
   final ApiTestBehavior behavior;
   final int statusCode;
   final Object? responseData;
+  final String? requiredBearer;
+  final Map<String, Object?>? routes;
   final List<ApiTestRequest> requests = [];
 
   ApiTestRequest? get lastRequest => requests.isEmpty ? null : requests.last;
@@ -81,8 +114,20 @@ class ApiTestServer implements HttpClientAdapter {
         method: options.method,
         path: options.path,
         body: Map<String, dynamic>.from(options.data as Map? ?? const {}),
+        authorization: options.headers['Authorization'] as String?,
       ),
     );
+
+    if (requiredBearer != null &&
+        options.headers['Authorization'] != 'Bearer $requiredBearer') {
+      return ResponseBody.fromString(
+        jsonEncode({'message': 'Unauthorized'}),
+        401,
+        headers: {
+          Headers.contentTypeHeader: [Headers.jsonContentType],
+        },
+      );
+    }
 
     switch (behavior) {
       case ApiTestBehavior.closeConnection:
@@ -100,8 +145,9 @@ class ApiTestServer implements HttpClientAdapter {
           },
         );
       case ApiTestBehavior.success:
+        final data = routes?[options.path] ?? responseData;
         return ResponseBody.fromString(
-          jsonEncode(responseData),
+          jsonEncode(data),
           statusCode,
           headers: {
             Headers.contentTypeHeader: [Headers.jsonContentType],

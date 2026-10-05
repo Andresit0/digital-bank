@@ -1,5 +1,6 @@
 import 'package:digital_bank/core/config/app_config.dart';
 import 'package:digital_bank/core/config/app_config_provider.dart';
+import 'package:digital_bank/core/network/auth_interceptor.dart';
 import 'package:digital_bank/core/network/dio_http_client.dart';
 import 'package:digital_bank/core/network/http_client.dart';
 import 'package:digital_bank/core/network/network_providers.dart';
@@ -64,5 +65,13 @@ void main() {
     expect(options.connectTimeout, const Duration(seconds: 10));
     expect(options.receiveTimeout, const Duration(seconds: 10));
     expect(options.sendTimeout, const Duration(seconds: 10));
+  });
+
+  test('dioProvider attaches the AuthInterceptor', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final dio = container.read(dioProvider);
+    expect(dio.interceptors.whereType<AuthInterceptor>(), hasLength(1));
   });
 }

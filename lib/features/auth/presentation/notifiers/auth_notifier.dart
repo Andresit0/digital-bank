@@ -1,4 +1,5 @@
 import 'package:digital_bank/core/services/observability/observability_provider.dart';
+import 'package:digital_bank/core/session/session_providers.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/observability/observability_event.dart';
 import 'package:digital_bank/shared/observability/observability_severity.dart';
@@ -28,6 +29,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
     result.when(
       success: (session) {
+        ref.read(sessionManagerProvider).setToken(session.accessToken);
         state = AuthAuthenticated(session);
       },
       failure: (error) {
@@ -38,6 +40,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   void logout() {
+    ref.read(sessionManagerProvider).clear();
     state = const AuthUnauthenticated();
     ref
         .read(observabilityProvider)

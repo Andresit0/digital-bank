@@ -109,6 +109,10 @@ void main() {
       expect(find.byType(MovementsScreen), findsOneWidget);
       expect(find.byKey(const Key('movement_tile_mov-1')), findsOneWidget);
       expect(find.byKey(const Key('movement_tile_mov-2')), findsOneWidget);
+
+      final movementsRequest = server.requestFor('/accounts/acc-1/movements');
+      expect(movementsRequest?.method, 'GET');
+      expect(movementsRequest?.authorization, 'Bearer test-access-token');
     });
 
     testWidgets('E2E-MOV-002 opens the detail without a second request', (

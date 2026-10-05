@@ -147,3 +147,10 @@ the accounts infrastructure.
 `ref.watch`. Accounts does not participate in authentication routing; access to
 the accounts area depends on the authentication guard established by the auth
 feature.
+
+## Authentication
+
+Protected endpoint.
+Requires `Authorization: Bearer <accessToken>`.
+The token is attached centrally by the shared API client; the feature never
+reads or builds it. See `docs/architecture/pr18-api-integration.md`.

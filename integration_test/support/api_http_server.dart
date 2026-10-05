@@ -6,11 +6,13 @@ class ApiHttpRequest {
     required this.method,
     required this.path,
     required this.body,
+    this.authorization,
   });
 
   final String method;
   final String path;
   final Map<String, dynamic> body;
+  final String? authorization;
 }
 
 enum ApiHttpBehavior {
@@ -76,6 +78,7 @@ class ApiHttpServer {
           method: request.method,
           path: request.uri.path,
           body: body,
+          authorization: request.headers.value(HttpHeaders.authorizationHeader),
         ),
       );
 
@@ -85,6 +88,11 @@ class ApiHttpServer {
       }
 
       final path = request.uri.path;
+
+      if (_isProtected(path) && !_hasValidBearer(request, accessToken)) {
+        _respond(request, HttpStatus.unauthorized, {'message': 'unauthorized'});
+        return;
+      }
 
       if (path.startsWith('/accounts/') && path.endsWith('/movements')) {
         _respond(request, HttpStatus.ok, movements ?? const <dynamic>[]);
@@ -132,6 +140,18 @@ class ApiHttpServer {
       ..headers.contentType = ContentType.json
       ..write(jsonEncode(data));
     request.response.close();
+  }
+
+  static bool _isProtected(String path) {
+    if (path == '/auth/login') return false;
+    if (path == '/accounts' || path.startsWith('/accounts/')) return true;
+    if (path == '/experience/home') return true;
+    return false;
+  }
+
+  static bool _hasValidBearer(HttpRequest request, String accessToken) {
+    final header = request.headers.value(HttpHeaders.authorizationHeader);
+    return header == 'Bearer $accessToken';
   }
 
   Future<void> close() => _server.close(force: true);

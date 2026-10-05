@@ -6,8 +6,8 @@
 |---|---|
 | Project | Digital Financial Platform — Flutter Technical Assessment |
 | Document | Requirements Traceability Matrix |
-| Version | 1.0 |
-| Status | Baseline |
+| Version | 1.1 |
+| Status | Active |
 | Source | Technical Assessment — Front-End |
 | Assessment Received | 2026-10-02 |
 | Submission Deadline | 2026-10-05 23:00 (Ecuador time) |
@@ -271,13 +271,13 @@ EC-002 Engineering Quality
 | REQ-023 | Derived Requirement | Usable and coherent financial application experience | UX | UX, Product | Evaluation Criteria — UX | Derived | High | Consistent navigation, states, feedback, and visual hierarchy | REQ-023 ← EC-003 → DEL-005 → widget tests and review | TBD | TBD | TBD | TBD | TBD |
 | REQ-024 | Derived Requirement | Effective use of AI and development tools | Development Process | Development Process | Evaluation Criteria — AI & Automation | Derived | Medium | AI-assisted development workflows with documented validation | REQ-024 ← EC-006 → AI-assisted workflows → evidence | TBD | TBD | TBD | TBD | TBD |
 | REQ-025 | Derived Requirement | Provide an accessible user interface based on the accessibility criterion | UX | UX, Engineering Quality | Evaluation Criteria — UX | Derived | High | Apply accessibility practices appropriate to the implemented UI | REQ-025 ← EC-003 → DEL-005 → accessibility checks | TBD | TBD | TBD | TBD | TBD |
-| SEC-001 | Security | Credentials and token handling | Security | Engineering Quality | Evaluation Criteria — Engineering Quality | Derived | High | Safe token lifecycle and handling | SEC-001 ← EC-002 → ADR-008 → verification | Implemented (in memory) | Credentials sent via HTTPS `HttpClient`; `AuthSession` kept in memory only | `test/features/auth/infrastructure/`, `test/features/auth/presentation/` | `features/auth/spec/spec.md` | No client-side password hashing (out of scope); no persistence |
+| SEC-001 | Security | Credentials and token handling | Security | Engineering Quality | Evaluation Criteria — Engineering Quality | Derived | High | Safe token lifecycle and handling | SEC-001 ← EC-002 → ADR-003, PR18 → verification | Implemented (in memory) | Credentials sent via the shared `HttpClient`; the returned JWT is kept in memory in `SessionManager` and attached centrally as `Authorization: Bearer <token>` by the `AuthInterceptor`; a `401` clears the session | `test/core/session/`, `test/core/network/auth_interceptor_test.dart`, `test/features/auth/integration/api_integration_test.dart` | `features/auth/spec/spec.md`, `docs/architecture/pr18-api-integration.md` | No client-side password hashing (out of scope); no persistence, refresh tokens, or secure storage |
 | SEC-002 | Security | Sensitive data protection | Security | Engineering Quality | Evaluation Criteria — Engineering Quality | Derived | High | Minimize and protect sensitive financial data | SEC-002 ← EC-002 → ADR-008 → verification | TBD | TBD | TBD | TBD | TBD |
 | SEC-003 | Security | Secrets and configuration separation | Security | Engineering Quality | Evaluation Criteria — Engineering Quality | Derived | High | Keep secrets separate from application source code and non-secret configuration | SEC-003 ← EC-002 → ADR-008 → verification | TBD | TBD | TBD | TBD | TBD |
 | SEC-004 | Security | Secure credential storage | Security | Engineering Quality | Evaluation Criteria — Engineering Quality | Derived | High | Platform secure storage for credentials | SEC-004 ← EC-002 → ADR-008 → verification | Deferred | Not implemented in PR9 (no secure storage, no session persistence) | — | `features/auth/spec/spec.md` (out of scope) | Session is memory-only |
 | SEC-005 | Security | Sensitive data logging protection | Security | Engineering Quality | Evaluation Criteria — Engineering Quality | Derived | High | Redact sensitive data from logs and telemetry | SEC-005 ← EC-002 → ADR-008, PR12, PR14 → verification | Implemented | `ILogger` and `IObservability`; notifiers report only event name, `errorType`, and `statusCode`; never credentials, tokens, account numbers, `maskedNumber`, balances, email, or payloads | `test/shared/error/`, `test/core/services/logging/`, `test/core/services/observability/`, Auth/Accounts notifier tests (SEC-OBS-001/002) | `docs/architecture/pr14-production-observability.md` (Sensitive Data section), `docs/operations/README.md` | Sensitive data logging and telemetry are prohibited and enforced by tests (`expectEventsRespectSensitiveDataPolicy`) |
 | CON-001 | Constraint | Flutter is mandatory for the application | Constraint | Technology, Architecture | Important Considerations — Technology | Explicit | Critical | Flutter application; additional technologies allowed where they help achieve the objectives | CON-001 → project setup → evidence | TBD | TBD | TBD | TBD | TBD |
-| CON-002 | Constraint | Real service interaction or dynamic processing valued; simulated/static-only solutions accepted but not positively evaluated without evidence | Constraint | Architecture, Product | Important Considerations — Simulated data | Explicit | High | Real service integration or dynamic processing | CON-002 → ADR-003, ADR-006 → integration evidence | Implemented (controlled scope) | Authentication flow runs through the real `Dio` client and `HttpClient` boundary | `test/features/auth/integration/`, `integration_test/auth/` | `features/auth/spec/tests.md` | The authentication flow is validated through a real Dio client against a controlled local HTTP server implementing the documented contract. Integration with the bank's real backend is Deferred because no backend service/API contract is available within the assessment scope. |
+| CON-002 | Constraint | Real service interaction or dynamic processing valued; simulated/static-only solutions accepted but not positively evaluated without evidence | Constraint | Architecture, Product | Important Considerations — Simulated data | Explicit | High | Real service integration or dynamic processing | CON-002 → ADR-003, ADR-006, PR18 → integration evidence | Implemented | The Flutter app consumes the real NestJS backend: `POST /auth/login` returns a JWT, the in-memory session attaches `Authorization: Bearer <token>` to `GET /accounts`, `GET /accounts/:accountId/movements`, and `GET /experience/home` | `test/features/auth/integration/api_integration_test.dart` (INT/API-001..006, E2E/API-001), `integration_test/api/real_backend_flow_test.dart` (E2E/API-REAL-001) | `features/auth/spec/contracts.md`, `docs/architecture/pr18-api-integration.md` | The deterministic E2E covers Login -> Accounts -> Movements -> Experience against a controlled local server; the real-backend E2E is validated against the NestJS backend for Login -> Home -> Accounts. Movements/Experience against the real backend are exercised by the deterministic suite, not asserted as real-backend E2E in PR18 |
 | EC-001 | Evaluation Criterion | Architecture | Evaluation | Architecture | Evaluation Criteria — Architecture | Explicit | High | Evaluation lens | EC-001 → ADR-001..004 → architecture review | TBD | TBD | TBD | TBD | TBD |
 | EC-002 | Evaluation Criterion | Engineering Quality | Evaluation | Engineering Quality, Security | Evaluation Criteria — Engineering Quality | Explicit | Critical | Evaluation lens | EC-002 → REQ-022, SEC-001..005, ADR-008, ADR-009 → evidence | TBD | TBD | TBD | TBD | TBD |
 | EC-003 | Evaluation Criterion | User Experience | Evaluation | UX | Evaluation Criteria — UX | Explicit | High | Evaluation lens | EC-003 → REQ-023, REQ-025 → DEL-005 | TBD | TBD | TBD | TBD | TBD |
@@ -402,7 +402,7 @@ ADRs are project decisions, not source requirements. They are driven by one or m
 
 ## 15. Traceability Status
 
-At version 1.0, the project is in the requirements-baseline phase. The implementation tracking fields are therefore `TBD`. The status vocabulary below is applied as implementation progresses.
+Version 1.0 established the original requirements baseline. Version 1.1 tracks implementation progress and verification evidence. The implementation tracking fields are updated as implementation progresses; the status vocabulary below is applied throughout.
 
 | Status | Meaning |
 |---|---|
@@ -433,10 +433,10 @@ Current implementation status:
 
 ```text
 Architecture:  ADR-001/002/003 defined (Accepted); ADR-005 (dynamic personalization) and ADR-009 (observability) Accepted
-Implementation: In progress (authentication, accounts, movements, dynamic experience)
-Tests:          In progress (unit, widget, integration-style, E2E)
+Implementation: In progress (authentication, accounts, movements, dynamic experience, Flutter-to-NestJS API integration)
+Tests:          In progress (unit, widget, integration-style, deterministic E2E, real-backend E2E)
 Documentation:  In progress
-Evidence:       Partial
+Evidence:       Partial (real-backend E2E validated for Login -> Home -> Accounts)
 ```
 
 ---

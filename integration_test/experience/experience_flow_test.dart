@@ -90,7 +90,9 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
       expect(find.text('Save more this month'), findsOneWidget);
       expect(find.text('View movements'), findsOneWidget);
-      expect(server.requestFor('/experience/home')?.method, 'GET');
+      final experienceRequest = server.requestFor('/experience/home');
+      expect(experienceRequest?.method, 'GET');
+      expect(experienceRequest?.authorization, 'Bearer test-access-token');
     });
 
     testWidgets('E2E-EXP-002 a changed definition is reflected', (
