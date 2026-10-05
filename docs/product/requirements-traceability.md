@@ -11,7 +11,7 @@
 | Source | Technical Assessment — Front-End |
 | Assessment Received | 2026-10-02 |
 | Submission Deadline | 2026-10-05 23:00 (Ecuador time) |
-| Last Updated | 2026-10-04 |
+| Last Updated | 2026-10-05 |
 
 ---
 
@@ -246,7 +246,7 @@ EC-002 Engineering Quality
 
 | ID | Type | Requirement / Item | Category | Related Areas | Source | Source Type | Priority | Technical Direction | Traceability | Status | Implementation | Tests | Documentation | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| REQ-001 | Requirement | Customer onboarding and authentication | Functional | Product, Security | Minimum Scope — Onboarding and authentication | Explicit | Critical | Auth feature with session management | REQ-001 → ADR-002 → auth feature → unit/widget tests → evidence | Implemented | `features/auth/` (domain/infrastructure/presentation, login flow, in-memory session) | `test/features/auth/` (domain, infrastructure, presentation, routing) | `features/auth/spec/` | Login flow and guarded routing verified; session persistence not in scope |
+| REQ-001 | Requirement | Customer onboarding and authentication | Functional | Product, Security | Minimum Scope — Onboarding and authentication | Explicit | Critical | Auth feature with session management plus PR21 onboarding completion gate | REQ-001 → ADR-002 (authentication), ADR-010 (onboarding local completion) → auth feature + onboarding feature → unit/widget tests → evidence | In Progress | Authentication implemented: `features/auth/` (domain/infrastructure/presentation, login flow, in-memory session). Onboarding specified by PR21 (`features/onboarding/spec/`), not yet implemented | `test/features/auth/` (domain, infrastructure, presentation, routing); onboarding tests specified by PR21 | `features/auth/spec/`, `features/onboarding/spec/` | Authentication implemented and verified (login flow and guarded routing); onboarding extension specified by PR21 (local completion, ADR-010) and pending implementation; session persistence not in scope |
 | REQ-002 | Requirement | Account management, balances, and movements | Functional | Product, Architecture | Minimum Scope — Accounts, balances and movements | Explicit | Critical | Accounts and movements features with repository-based data access | REQ-002 → ADR-001, ADR-003 → accounts + movements features → tests → evidence | Implemented | `features/accounts/` (domain, infrastructure, presentation, DI) and `features/movements/` (domain, infrastructure, presentation, DI) | `test/features/accounts/` + `integration_test/accounts/` + `test/features/movements/` + `integration_test/movements/` | `features/accounts/spec/` and `features/movements/spec/` | Accounts with type, masked number, and available balance; movements list and detail; login → home → accounts → movements flow verified via E2E |
 | REQ-003 | Requirement | Dynamic personalization of experience, content, or functionality | Functional | Product, UX | Minimum Scope — Dynamic personalization | Explicit | High | Remote configuration/content model with controlled schema | REQ-003 → ADR-005 → experience feature (remote definition, schema-controlled composition) → unit/widget/integration/E2E tests → evidence | Implemented (controlled scope) | `features/experience/` (domain, infrastructure, presentation, DI) composed on `features/home/`; remote `GET /experience/home`, schema-controlled sections (promotion, quick_action) | `test/features/experience/` (domain, infrastructure, presentation, integration) + `integration_test/experience/` | `features/experience/spec/` | Remote, schema-controlled experience composed at runtime on Home; changing the server definition changes the rendered experience without a new app build; user-specific personalization/segmentation, decision engine, feature flags, A/B testing, and CMS are out of scope; BON-002 (dynamically generated experiences) is a secondary effect |
 | REQ-004 | Requirement | Integrate at least one external service or micro-application | Functional | Architecture | Minimum Scope — External service integration | Explicit | High | Repository + adapter integration boundary | REQ-004 → PR19 (FCM) → adapter → integration tests → evidence | Implemented | PR19 integrates Firebase Cloud Messaging (Android) behind a `notifications` feature (domain Firebase-free) and a NestJS `notifications` module (`NotificationSender` abstraction, `firebase-admin` lazy, `DeviceInstallation`); the backend sends a real notification through FCM with dynamic title/body while preserving routing data | `lib/features/notifications/`, `api/src/notifications/`, `test/features/notifications/`, `integration_test/notifications/`, `api/test/e2e/notifications.e2e-spec.ts`, `.github/workflows/{flutter-ci,api-ci}.yml` | `docs/architecture/pr19-external-service-integration.md`, `features/notifications/spec/` | Real external-service integration (FCM/Android), validated end-to-end on a physical Android device; the real FCM delivery uses a service account outside the repository while CI validates without credentials |
@@ -373,6 +373,7 @@ ADRs are project decisions, not source requirements. They are driven by one or m
 | ADR-007 | Push Notifications | REQ-005 | Planned |
 | ADR-008 | Security and Secrets Handling | SEC-001, SEC-002, SEC-003, SEC-004, SEC-005, EC-002 | Planned |
 | ADR-009 | Observability and Monitoring | REQ-013, EC-002 | Accepted |
+| ADR-010 | Local Persistence (Onboarding Completion) | REQ-001 | Accepted |
 
 ---
 
@@ -433,7 +434,7 @@ Current implementation status:
 
 ```text
 Architecture:  ADR-001/002/003 defined (Accepted); ADR-004 (resilience policy), ADR-005 (dynamic personalization), and ADR-009 (observability) Accepted
-Implementation: In progress (authentication, accounts, movements, dynamic experience, Flutter-to-NestJS API integration, external service integration — FCM/Android; resilience — bounded retry, in-memory read cache, connectivity abstraction, and stale/degraded states for Accounts, Movements, and Experience)
+Implementation: In progress (authentication, accounts, movements, dynamic experience, Flutter-to-NestJS API integration, external service integration — FCM/Android; resilience — bounded retry, in-memory read cache, connectivity abstraction, and stale/degraded states for Accounts, Movements, and Experience; onboarding specified — PR21 minimum viable onboarding with local completion, pending implementation)
 Tests:          In progress (unit, widget, integration-style, deterministic E2E, real-backend E2E, resilience tests)
 Documentation:  In progress
 Evidence:       Partial (real-backend E2E for Login -> Home -> Accounts; FCM delivery validated on a physical Android device; resilience — REQ-006..REQ-009 implemented and verified by tests)
