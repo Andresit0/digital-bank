@@ -2,15 +2,15 @@
 
 ## 1. Objective
 
-Define how visual evidence of the main customer journey will be produced,
-automated, and retained as final delivery evidence. The objective is to:
+Define how visual evidence of the main customer journey is produced, automated,
+and retained as final delivery evidence. The objective is to:
 
 - demonstrate the main functional journey in a single visual sequence;
 - complement, not replace, the existing functional end-to-end tests;
-- provide evidence attached to the delivery (workflow artifacts).
+- provide evidence attached to the delivery.
 
-This document defines the strategy only. It does not capture any screenshot and
-does not implement any automation.
+The screenshot capture is implemented (PR25). Publishing the screenshots as
+GitHub Actions artifacts remains the target retention mechanism.
 
 ## 2. Customer Journey
 
@@ -37,7 +37,7 @@ Note: "Dynamic Experience" is the remotely configured, schema-controlled
 experience composed on Home, not a separate route. Its screenshot captures that
 section as rendered on the Home screen.
 
-## 3. Planned Screenshots
+## 3. Screenshots
 
 | # | File | Journey step | Notes |
 |---|---|---|---|
@@ -48,82 +48,108 @@ section as rendered on the Home screen.
 | 05 | `05_accounts.png` | Accounts | Account summary |
 | 06 | `06_movements.png` | Movements | Movement history |
 
-## 4. E2E-VIS-001 (Planned, Conceptual)
+The six screenshots are committed under `screenshots/` and published in the
+README.
 
-`E2E-VIS-001` is the conceptual test that will walk the journey above and capture
-one screenshot per step. Its status is **Planned / conceptual**; it is not
-implemented in PR22.
+## 4. E2E-VIS-001
 
-When implemented (future work), it should:
+`E2E-VIS-001` is the end-to-end test that walks the journey above and captures
+one screenshot per step. It is implemented in
+`integration_test/screenshots_capture_test.dart`.
 
-- reuse the existing navigation and test helpers rather than introduce a parallel
-  harness, for example `integration_test/support/onboarding_test_support.dart`
-  (onboarding completion seeding) and `integration_test/support/api_http_server.dart`
-  (controlled local server);
-- drive the real journey used by the existing E2E tests
-  (`integration_test/onboarding/`, `auth/`, `accounts/`, `movements/`,
-  `experience/`);
-- capture screenshots additively, without duplicating the functional assertions
-  that the existing E2E tests already make.
+- **Capture mechanism:** `IntegrationTestWidgetsFlutterBinding.takeScreenshot`
+  after pumping a settled frame, so the captured image reflects the real
+  rendered application.
+- **Materialization:** `test_driver/integration_test.dart` implements the
+  `integration_test_driver_extended` `onScreenshot` callback and writes each PNG
+  under `screenshots/`.
+- **Data source:** the controlled local HTTP server
+  (`integration_test/support/api_http_server.dart`) serves fixed accounts,
+  movements, and a dynamic experience; onboarding is seeded through
+  `integration_test/support/onboarding_test_support.dart`. No network or real
+  backend is required.
+- **Additivity:** the capture reuses the navigation and helpers of the existing
+  E2E flows, without duplicating the functional assertions that those tests
+  already make, and without replacing them.
 
-The screenshots themselves do not exist yet; none should be presented as captured
-until the automation produces them.
-
-## 5. Future Pipeline
+## 5. Capture Pipeline
 
 ```text
-Integration Test
+Integration Test (E2E-VIS-001)
       |
       v
-Screenshot capture
+Screenshot capture (takeScreenshot)
       |
       v
-GitHub Actions
+Driver (onScreenshot)
       |
       v
-Artifact
+screenshots/ (committed evidence)
       |
       v
-Final evidence
+README gallery
 ```
 
-GitHub Actions artifacts are the intended retention mechanism for screenshots and
-test outputs. This pipeline is a documented strategy; none of it is implemented,
-and the current workflows do not upload artifacts.
+GitHub Actions artifacts are the intended retention mechanism for screenshots
+and test outputs. The capture and the committed screenshots are implemented; the
+current workflows do not upload artifacts.
 
 ## 6. Responsibility Boundary
 
 | Phase | Responsibility for visual evidence |
 |---|---|
-| Final Delivery (PR22) | Define and document this strategy |
-| Future work | Implement screenshot capture, automation, and artifacts |
-| Final validation | Consolidate the available evidence and traceability |
+| Final Delivery (PR22) | Define and document the strategy |
+| Visual evidence capture (PR25) | Implement `E2E-VIS-001`, the driver, the six screenshots, and the README gallery |
+| CI artifact publication | Future work |
 
-## 7. What Does Not Exist Today
+## 7. Current State
 
 ```text
-Screenshots                          -> not captured
-E2E-VIS-001 test                     -> not implemented (conceptual)
-Screenshot capture code              -> does not exist
-GitHub Actions screenshot workflow   -> does not exist
+Screenshots                          -> captured (screenshots/01–06)
+E2E-VIS-001 test                     -> implemented
+Screenshot capture code              -> implemented (test_driver/integration_test.dart)
+GitHub Actions screenshot workflow   -> not implemented
 Workflow artifacts                   -> not uploaded
 ```
 
-## 8. Traceability
+## 8. Reproducibility
+
+The screenshots are regenerated on a booted iOS simulator or Android device
+with:
+
+```bash
+flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/screenshots_capture_test.dart \
+  -d <device-id>
+```
+
+Regeneration criteria:
+
+```text
+- the test passes;
+- exactly the six PNG files are produced;
+- the file names are exact;
+- each file has a reasonable, non-empty size;
+- no additional files are generated;
+- the images correspond to the journey steps in order.
+```
+
+## 9. Traceability
 
 ```text
 BON-003  Automation for development, testing, deployment, or documentation
-         -> Planned: screenshot capture and artifact publication (future work).
+         -> Implemented: screenshot capture and driver automation (PR25);
+            artifact publication remains future work.
 REQ-024  Effective use of AI and development tools
-         -> Automated visual evidence is part of the intended automation, not yet
-            implemented.
+         -> Automated visual evidence implemented (PR25).
 REQ-012  Critical end-to-end flow
          -> Already covered by the existing functional E2E tests; visual evidence
             is additive and does not replace them.
 ```
 
-## 9. Boundaries
+## 10. Boundaries
 
-This document does not add tests, capture screenshots, modify workflows, or
-upload artifacts. It records the intended approach and defers the implementation
-to future work.
+This document does not change the application, add product behavior, or modify
+the CI workflows. It records the implemented capture and defers artifact
+publication to future work.

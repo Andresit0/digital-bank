@@ -163,5 +163,6 @@ REQ-024  Effective use of AI and development tools
 ## 12. Boundaries
 
 This document does not claim autonomous commits, deployed automation, metric
-instrumentation, or tool benchmarking. Screenshot automation and CI artifacts are
-a strategy for later work, not a current capability.
+instrumentation, or tool benchmarking. Screenshot automation is implemented
+(PR25); publishing screenshots as CI artifacts remains a strategy for later
+work.
