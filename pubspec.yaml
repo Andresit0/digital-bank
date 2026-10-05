@@ -16,6 +16,7 @@ dependencies:
   dio: ^5.11.1
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
+  connectivity_plus: ^7.3.2
 
 dev_dependencies:
   flutter_test:
