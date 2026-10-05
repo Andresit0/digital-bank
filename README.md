@@ -4,7 +4,7 @@ Flutter implementation for the Senior Front-End Technical Assessment.
 
 ## Project Status
 
-Current phase: Core product features
+Current phase: Final validation and delivery
 
 Authentication, Accounts (accounts, available balances), Movements
 (transaction history and detail), and Dynamic Experience (remotely configured,
@@ -12,9 +12,10 @@ schema-controlled experience composed on Home) are implemented and integrated
 into the application. Shared error handling, development logging, and production
 observability are implemented as cross-cutting foundations. The Flutter
 application consumes the NestJS backend through a shared API client with
-centralized in-memory session management and Bearer authentication. Additional
-core product features are being developed incrementally using
-Specification-Driven Development (SDD) and Test-Driven Development (TDD).
+centralized in-memory session management and Bearer authentication. The
+implementation was developed incrementally using Specification-Driven
+Development (SDD) and Test-Driven Development (TDD), and the project is now in
+final validation and delivery.
 
 PR21 — Minimum Viable Onboarding is implemented: a first-run onboarding (three
 steps, Next/Skip) is shown before authentication and its completion is persisted
@@ -43,8 +44,10 @@ PR18 — Flutter to NestJS API Integration   Merged
 Navigation Flow Fix                        Merged
 PR19 — External Service Integration        Merged
 PR20 — Resilience & Degraded State         Merged
-PR21 — Minimum Viable Onboarding           Completed
-PR22 — Final Delivery                      Completed
+PR21 — Minimum Viable Onboarding           Merged
+PR22 — Final Delivery                      Merged
+PR23 — Final Quality & Evidence            Merged
+PR24 — Final Validation & Delivery         In progress
 ```
 
 Navigation preserves a back history across Home, Accounts, Movements, and
@@ -143,6 +146,7 @@ Feature specifications are maintained alongside each feature under
 - `lib/features/movements/spec/`
 - `lib/features/experience/spec/`
 - `lib/features/onboarding/spec/`
+- `lib/features/notifications/spec/`
 
 Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
@@ -233,6 +237,7 @@ flutter test integration_test/accounts/accounts_navigation_test.dart
 flutter test integration_test/accounts/accounts_display_test.dart
 flutter test integration_test/movements/movements_flow_test.dart
 flutter test integration_test/experience/experience_flow_test.dart
+flutter test integration_test/navigation/navigation_flow_test.dart
 flutter test integration_test/onboarding/onboarding_flow_test.dart
 ```
 
@@ -270,10 +275,11 @@ flutter test integration_test/notifications/notification_flow_test.dart
 ```
 
 CI validates the Flutter project (`flutter pub get`, `flutter analyze`,
-`flutter test`, `flutter build apk --debug`) and the NestJS API (`npm ci`,
-`npm run build`, `npm run lint`, `npm run test`) without any Firebase
-credential. A CI guard rejects committed private credentials
-(`service-account*.json`, `*.p8`).
+`flutter test`, `flutter build apk --debug`) and the NestJS API against a
+PostgreSQL 16 service (`npm ci`, `npm run build`, `npm run lint`, `npm run test`,
+`npm run test:integration`, `npm run test:e2e`) without any Firebase credential.
+A CI guard rejects committed private credentials (`service-account*.json`,
+`*.p8`).
 
 ### AI
 
