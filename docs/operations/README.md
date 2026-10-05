@@ -6,6 +6,10 @@ The project runs `flutter analyze` and `flutter test` (unit, widget, and
 integration-style) as its quality gate. End-to-end flows run on a device or
 simulator (`flutter test integration_test/... -d <device-id>`).
 
+For the build, deployment, release, and rollback strategy, and the current
+automation status, see
+[Deployment and Operations](../delivery/deployment-and-operations.md).
+
 ## Observability and Monitoring
 
 ### Model
