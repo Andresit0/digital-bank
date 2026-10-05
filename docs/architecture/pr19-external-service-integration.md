@@ -192,26 +192,50 @@ abstracts both `onMessageOpenedApp` (background) and `getInitialMessage`
 ```text
 notifications.module.ts
 notifications.controller.ts
-application/send-notification.use-case.ts
-domain/notification-provider.interface.ts
-infrastructure/firebase-notification.service.ts
+notifications.service.ts
+domain/notification-sender.interface.ts
+infrastructure/firebase-notification.sender.ts
+entities/device-installation.entity.ts
+dto/register-device.dto.ts
+dto/send-notification.dto.ts
 ```
 
-Endpoints (both JWT-protected):
+The controller does not depend on `firebase-admin`. The delivery path is:
 
 ```text
-POST /notifications/register   # associates a device installation with the user
-POST /notifications/send       # demonstration/dev capability; not a public endpoint
+NotificationsController
+    -> NotificationsService
+    -> NotificationSender (interface)
+    -> FirebaseNotificationSender
+    -> firebase-admin
+    -> FCM
 ```
+
+`FirebaseNotificationSender` initializes the Admin SDK lazily, so the module
+boots without credentials and tests never require them. The sender returns the
+`messageId` produced by Firebase (`Messaging.send()`), not an application-generated
+id.
+
+Endpoints (both JWT-protected with `@Auth(ValidRoles.user)`):
+
+```text
+POST /notifications/register   # body { token, platform }; user comes from the JWT
+POST /notifications/send       # body { userId, type, movementId }
+```
+
+- `register` is idempotent for the same (user, token).
+- `register` never accepts `userId` from the body; it is taken from the JWT.
+- `send` returns `{ messageId }` as produced by FCM.
 
 Request body (`send`):
 
 ```json
-{ "type": "movement", "movementId": "..." }
+{ "userId": "...", "type": "movement", "movementId": "..." }
 ```
 
-`/notifications/send` is a demonstration capability. No public endpoint may
-allow arbitrary clients to send notifications.
+The FCM data payload contains only `type` and `movementId` (D16). `/notifications/send`
+is a demonstration/dev capability. No public endpoint may allow arbitrary
+clients to send notifications.
 
 ### 5.3 Persistence
 
@@ -219,14 +243,16 @@ allow arbitrary clients to send notifications.
 DeviceInstallation
 ------------------
 id
-userId
-firebaseInstallationId
-fcmRegistrationToken
-platform
-lastSeenAt
+userCode            (ManyToOne -> User)
+token
+platform            (android)
 createdAt
 updatedAt
 ```
+
+The (user, token) pair is unique, which enforces idempotent registration.
+Credentials live outside the repository; the Admin SDK uses
+`GOOGLE_APPLICATION_CREDENTIALS` (Application Default Credentials).
 
 In PR19 `platform = android`. The registration token/FID are never logged,
 committed, documented, returned in unnecessary responses, or used as real

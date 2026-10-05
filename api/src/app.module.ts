@@ -5,6 +5,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { AuthModule } from './auth/auth.module';
 import { ExperienceModule } from './experience/experience.module';
 import { MovementsModule } from './movements/movements.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { SeedModule } from './seed/seed.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { SeedModule } from './seed/seed.module';
     AccountsModule,
     MovementsModule,
     ExperienceModule,
+    NotificationsModule,
     SeedModule,
   ],
 })
