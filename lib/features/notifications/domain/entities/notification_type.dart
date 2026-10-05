@@ -1,0 +1,1 @@
+enum NotificationType { movement, unknown }
