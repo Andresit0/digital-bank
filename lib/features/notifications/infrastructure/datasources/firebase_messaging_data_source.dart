@@ -77,6 +77,30 @@ class FirebaseMessagingAdapterImpl implements FirebaseMessagingAdapter {
   );
 }
 
+class NoopFirebaseMessagingAdapter implements FirebaseMessagingAdapter {
+  const NoopFirebaseMessagingAdapter();
+
+  @override
+  Future<bool> requestPermission() async => false;
+
+  @override
+  Future<String?> getToken() async => null;
+
+  @override
+  Stream<String> get onTokenRefresh => const Stream<String>.empty();
+
+  @override
+  Stream<NotificationPayload> get onMessage =>
+      const Stream<NotificationPayload>.empty();
+
+  @override
+  Stream<NotificationPayload> get onMessageOpenedApp =>
+      const Stream<NotificationPayload>.empty();
+
+  @override
+  Future<NotificationPayload?> getInitialMessage() async => null;
+}
+
 class FirebaseMessagingDataSourceImpl implements FirebaseMessagingDataSource {
   FirebaseMessagingDataSourceImpl(this._adapter);
 

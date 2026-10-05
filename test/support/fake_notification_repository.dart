@@ -12,13 +12,17 @@ class FakeNotificationRepository implements NotificationRepository {
 
   bool permissionGranted;
   String? token;
+  int permissionRequests = 0;
 
   final _refresh = StreamController<String>.broadcast();
   final _messages = StreamController<NotificationMessage>.broadcast();
   final _opened = StreamController<NotificationIntent>.broadcast();
 
   @override
-  Future<bool> requestPermission() async => permissionGranted;
+  Future<bool> requestPermission() async {
+    permissionRequests++;
+    return permissionGranted;
+  }
 
   @override
   Future<String?> getToken() async => token;

@@ -14,16 +14,20 @@ final notificationProvider =
     );
 
 class NotificationNotifier extends Notifier<NotificationState> {
+  static const String _platform = 'android';
+
   void Function(NotificationIntent intent)? onIntent;
 
   StreamSubscription<NotificationMessage>? _messageSubscription;
   StreamSubscription<NotificationIntent>? _openedSubscription;
+  StreamSubscription<String>? _refreshSubscription;
 
   @override
   NotificationState build() {
     ref.onDispose(() {
       _messageSubscription?.cancel();
       _openedSubscription?.cancel();
+      _refreshSubscription?.cancel();
     });
     return const NotificationInitial();
   }
@@ -49,7 +53,25 @@ class NotificationNotifier extends Notifier<NotificationState> {
 
     if (token == null) {
       state = const NotificationFailure(NotificationError.unavailable);
+      return;
     }
+
+    await _register(token);
+  }
+
+  Future<void> start() async {
+    _refreshSubscription?.cancel();
+    _refreshSubscription = ref
+        .read(notificationRepositoryProvider)
+        .refreshToken()
+        .listen(_register);
+
+    final granted = await requestPermission();
+    if (!granted) {
+      return;
+    }
+
+    await loadToken();
   }
 
   void listen() {
@@ -64,5 +86,20 @@ class NotificationNotifier extends Notifier<NotificationState> {
     _openedSubscription = repository.onOpened().listen((intent) {
       onIntent?.call(intent);
     });
+  }
+
+  Future<void> _register(String token) async {
+    final result = await ref
+        .read(notificationsRemoteDataSourceProvider)
+        .register(token: token, platform: _platform);
+
+    result.when(
+      success: (_) {
+        state = const NotificationInitial();
+      },
+      failure: (_) {
+        state = const NotificationFailure(NotificationError.unavailable);
+      },
+    );
   }
 }
