@@ -40,16 +40,16 @@ Automated validation currently runs on pull requests via
 `.github/workflows/flutter-ci.yml` and `.github/workflows/api-ci.yml`. GitHub
 Actions can publish build, test, and screenshot outputs as workflow artifacts,
 but the current workflows do not upload artifacts. Screenshot capture and
-artifact publication are a documented strategy to be implemented in PR23.
+artifact publication are a documented strategy; they are not implemented.
 
 ## 4. Implementation Status
 
 The table separates what exists today from what is documented (strategy or
 evidence) and what is planned for later work.
 
-| Area | Currently implemented | Documented (no automation yet) | Future implementation (PR23) |
+| Area | Currently implemented | Documented (no automation yet) | Future work |
 |---|---|---|---|
-| Validation | On pull request: `flutter analyze`, `flutter test`, `flutter build apk --debug` (flutter-ci); `npm run build`, `npm run lint`, `npm run test` (api-ci) | — | — |
+| Validation | On pull request: `flutter analyze`, `flutter test`, `flutter build apk --debug` (flutter-ci); `npm run build`, `npm run lint`, `npm run test`, `npm run test:integration`, `npm run test:e2e` (api-ci, with a PostgreSQL 16 service) | — | — |
 | Deployment / release | Build configuration only; no release or deployment pipeline | Release strategy: build Android/iOS, secrets handling, release, rollback, incident response | — |
 | Accessibility | Semantic labels in onboarding, movements, and movement detail; tooltips in the app bar and login; widget assertion `ONB-W-006` | Evidence: verified vs pending (contrast, text scaling, touch targets) | TalkBack / VoiceOver validation |
 | Visual evidence | — | Strategy: customer journey and `E2E-VIS-001` (conceptual) | Screenshot capture -> GitHub Actions artifact |
@@ -73,5 +73,5 @@ evidence) and what is planned for later work.
 
 Out of scope for PR22: screenshot capture tests, GitHub Actions screenshot
 workflows, final regression suite, new E2E, golden tests, new features, UI
-changes, API changes, architecture changes, and new quality gates. These belong
-to PR23 and PR24.
+changes, API changes, architecture changes, and new quality gates. These are
+outside the PR22 scope and remain future work.
