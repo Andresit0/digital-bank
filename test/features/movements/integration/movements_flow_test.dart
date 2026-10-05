@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:digital_bank/core/network/dio_http_client.dart';
 import 'package:digital_bank/core/network/network_providers.dart';
+import 'package:digital_bank/core/network/read_cache.dart';
 import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/features/movements/domain/entities/movement.dart';
 import 'package:digital_bank/features/movements/infrastructure/datasources/movements_remote_data_source.dart';
@@ -9,6 +10,7 @@ import 'package:digital_bank/features/movements/presentation/movements_state.dar
 import 'package:digital_bank/features/movements/presentation/notifiers/movements_notifier.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,7 +22,7 @@ MovementsRepositoryImpl _repositoryFor(ApiTestServer server) {
     ..httpClientAdapter = server;
   final httpClient = DioHttpClient(dio);
   final dataSource = MovementsRemoteDataSourceImpl(httpClient);
-  return MovementsRepositoryImpl(dataSource);
+  return MovementsRepositoryImpl(dataSource, ReadCache());
 }
 
 void main() {
@@ -52,11 +54,13 @@ void main() {
 
       expect(server.lastRequest?.method, 'GET');
       expect(server.lastRequest?.path, '/accounts/acc-1/movements');
-      expect(result, isA<Success<List<Movement>>>());
-      final movements = (result as Success<List<Movement>>).data;
-      expect(movements, hasLength(2));
-      expect(movements.first.type, MovementType.credit);
-      expect(movements.last.type, MovementType.debit);
+      expect(server.requests, hasLength(1));
+      expect(result, isA<Success<Read<List<Movement>>>>());
+      final read = (result as Success<Read<List<Movement>>>).data;
+      expect(read.source, ReadSource.remote);
+      expect(read.data, hasLength(2));
+      expect(read.data.first.type, MovementType.credit);
+      expect(read.data.last.type, MovementType.debit);
     });
 
     test('INT-MOV-002 returns an empty list for an empty response', () async {
@@ -65,8 +69,8 @@ void main() {
       final result = await _repositoryFor(server)
           .fetchMovements(accountId: 'acc-1');
 
-      expect(result, isA<Success<List<Movement>>>());
-      expect((result as Success<List<Movement>>).data, isEmpty);
+      expect(result, isA<Success<Read<List<Movement>>>>());
+      expect((result as Success<Read<List<Movement>>>).data.data, isEmpty);
     });
 
     test('INT-MOV-003 maps a server error to ApiError(500)', () async {
@@ -75,8 +79,8 @@ void main() {
       final result = await _repositoryFor(server)
           .fetchMovements(accountId: 'acc-1');
 
-      expect(result, isA<Failure<List<Movement>>>());
-      final error = (result as Failure<List<Movement>>).error;
+      expect(result, isA<Failure<Read<List<Movement>>>>());
+      final error = (result as Failure<Read<List<Movement>>>).error;
       expect(error, isA<ApiError>());
       expect((error as ApiError).statusCode, 500);
     });
@@ -87,8 +91,11 @@ void main() {
       final result = await _repositoryFor(server)
           .fetchMovements(accountId: 'acc-1');
 
-      expect(result, isA<Failure<List<Movement>>>());
-      expect((result as Failure<List<Movement>>).error, isA<NetworkError>());
+      expect(result, isA<Failure<Read<List<Movement>>>>());
+      expect(
+        (result as Failure<Read<List<Movement>>>).error,
+        isA<NetworkError>(),
+      );
     });
 
     test(

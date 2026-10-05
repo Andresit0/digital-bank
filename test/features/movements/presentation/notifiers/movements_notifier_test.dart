@@ -10,6 +10,7 @@ import 'package:digital_bank/shared/error/result.dart';
 import 'package:digital_bank/shared/interfaces/i_logger.dart';
 import 'package:digital_bank/shared/interfaces/i_observability.dart';
 import 'package:digital_bank/shared/observability/observability_severity.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,16 +18,24 @@ import '../../../../support/fake_observability.dart';
 import '../../../../support/observability_policy.dart';
 
 class _FakeMovementsRepository implements MovementsRepository {
-  _FakeMovementsRepository({this.result});
+  _FakeMovementsRepository({this.result, this.sequence});
 
-  final Result<List<Movement>>? result;
+  final Result<Read<List<Movement>>>? result;
+  final List<Result<Read<List<Movement>>>>? sequence;
   String? lastAccountId;
+  int _calls = 0;
 
   @override
-  Future<Result<List<Movement>>> fetchMovements({
+  Future<Result<Read<List<Movement>>>> fetchMovements({
     required String accountId,
   }) async {
     lastAccountId = accountId;
+    final queued = sequence;
+    if (queued != null && queued.isNotEmpty) {
+      final index = _calls < queued.length ? _calls : queued.length - 1;
+      _calls++;
+      return queued[index];
+    }
     return result!;
   }
 }
@@ -51,15 +60,27 @@ class _ThrowingLogger implements ILogger {
   }
 }
 
-Movement _movement({required String type}) {
+Movement _movement({String type = 'credit', String accountId = 'acc-1'}) {
   return Movement(
     id: 'mov-1',
-    accountId: 'acc-1',
+    accountId: accountId,
     type: type == 'credit' ? MovementType.credit : MovementType.debit,
     amount: 500.0,
     currency: 'USD',
     description: 'Salary',
     occurredAt: DateTime.utc(2026, 10, 1),
+  );
+}
+
+Result<Read<List<Movement>>> _remote(List<Movement> movements) {
+  return Success(
+    Read<List<Movement>>(movements, source: ReadSource.remote),
+  );
+}
+
+Result<Read<List<Movement>>> _cached(List<Movement> movements) {
+  return Success(
+    Read<List<Movement>>(movements, source: ReadSource.cache),
   );
 }
 
@@ -82,7 +103,7 @@ void main() {
   group('MovementsNotifier', () {
     test('starts in the initial state', () {
       final container = _containerWith(
-        _FakeMovementsRepository(result: const Success<List<Movement>>([])),
+        _FakeMovementsRepository(result: _remote(const [])),
       );
       addTearDown(container.dispose);
 
@@ -91,7 +112,7 @@ void main() {
 
     test('load requires an accountId and emits loading then loaded', () async {
       final repository = _FakeMovementsRepository(
-        result: Success<List<Movement>>([_movement(type: 'credit')]),
+        result: _remote([_movement()]),
       );
       final container = _containerWith(repository);
       addTearDown(container.dispose);
@@ -112,7 +133,7 @@ void main() {
 
     test('empty result emits empty', () async {
       final container = _containerWith(
-        _FakeMovementsRepository(result: const Success<List<Movement>>([])),
+        _FakeMovementsRepository(result: _remote(const [])),
       );
       addTearDown(container.dispose);
 
@@ -124,7 +145,9 @@ void main() {
     test('failure emits failure with the mapped AppError', () async {
       final container = _containerWith(
         _FakeMovementsRepository(
-          result: const Failure<List<Movement>>(ApiError(statusCode: 500)),
+          result: const Failure<Read<List<Movement>>>(
+            ApiError(statusCode: 500),
+          ),
         ),
       );
       addTearDown(container.dispose);
@@ -142,7 +165,7 @@ void main() {
         final observability = FakeObservability();
         final container = _containerWith(
           _FakeMovementsRepository(
-            result: const Failure<List<Movement>>(NetworkError()),
+            result: const Failure<Read<List<Movement>>>(NetworkError()),
           ),
           observability: observability,
           logger: _ThrowingLogger(),
@@ -161,7 +184,7 @@ void main() {
       final observability = FakeObservability();
       final container = _containerWith(
         _FakeMovementsRepository(
-          result: const Failure<List<Movement>>(
+          result: const Failure<Read<List<Movement>>>(
             NetworkError(technicalMessage: 'connection refused'),
           ),
         ),
@@ -178,7 +201,9 @@ void main() {
       final observability = FakeObservability();
       final container = _containerWith(
         _FakeMovementsRepository(
-          result: const Failure<List<Movement>>(ApiError(statusCode: 500)),
+          result: const Failure<Read<List<Movement>>>(
+            ApiError(statusCode: 500),
+          ),
         ),
         observability: observability,
       );
@@ -199,7 +224,7 @@ void main() {
         final observability = FakeObservability();
         final container = _containerWith(
           _FakeMovementsRepository(
-            result: const Failure<List<Movement>>(NetworkError()),
+            result: const Failure<Read<List<Movement>>>(NetworkError()),
           ),
           observability: observability,
         );
@@ -215,5 +240,94 @@ void main() {
         expect(event.metadata.containsKey('statusCode'), isFalse);
       },
     );
+
+    test('MOV-NOT-007 remote read emits MovementsLoaded', () async {
+      final container = _containerWith(
+        _FakeMovementsRepository(result: _remote([_movement()])),
+      );
+      addTearDown(container.dispose);
+
+      await container.read(movementsProvider.notifier).load(accountId: 'acc-1');
+
+      final state = container.read(movementsProvider);
+      expect(state, isA<MovementsLoaded>());
+      expect((state as MovementsLoaded).movements, hasLength(1));
+    });
+
+    test('MOV-NOT-008 cached read emits MovementsStale', () async {
+      final container = _containerWith(
+        _FakeMovementsRepository(result: _cached([_movement()])),
+      );
+      addTearDown(container.dispose);
+
+      await container.read(movementsProvider.notifier).load(accountId: 'acc-1');
+
+      final state = container.read(movementsProvider);
+      expect(state, isA<MovementsStale>());
+      final stale = state as MovementsStale;
+      expect(stale.movements, hasLength(1));
+      expect(stale.movements.first.accountId, 'acc-1');
+    });
+
+    test('MOV-NOT-009 stale -> retry -> loading -> remote recovery', () async {
+      final repository = _FakeMovementsRepository(
+        sequence: [
+          _cached([_movement()]),
+          _remote([_movement()]),
+        ],
+      );
+      final container = _containerWith(repository);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(movementsProvider.notifier);
+
+      await notifier.load(accountId: 'acc-1');
+      expect(container.read(movementsProvider), isA<MovementsStale>());
+
+      final future = notifier.load(accountId: 'acc-1');
+      expect(container.read(movementsProvider), isA<MovementsLoading>());
+
+      await future;
+      expect(container.read(movementsProvider), isA<MovementsLoaded>());
+      expect(repository.lastAccountId, 'acc-1');
+    });
+
+    test('MOV-NOT-010 failure -> retry -> loading -> recovery', () async {
+      final repository = _FakeMovementsRepository(
+        sequence: [
+          const Failure<Read<List<Movement>>>(NetworkError()),
+          _remote([_movement()]),
+        ],
+      );
+      final container = _containerWith(repository);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(movementsProvider.notifier);
+
+      await notifier.load(accountId: 'acc-1');
+      expect(container.read(movementsProvider), isA<MovementsFailure>());
+
+      final future = notifier.load(accountId: 'acc-1');
+      expect(container.read(movementsProvider), isA<MovementsLoading>());
+
+      await future;
+      expect(container.read(movementsProvider), isA<MovementsLoaded>());
+      expect(repository.lastAccountId, 'acc-1');
+    });
+
+    test('MOV-NOT-011 cached read reports movements_stale_served', () async {
+      final observability = FakeObservability();
+      final container = _containerWith(
+        _FakeMovementsRepository(result: _cached([_movement()])),
+        observability: observability,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(movementsProvider.notifier).load(accountId: 'acc-1');
+
+      final event = observability.events.single;
+      expect(event.name, 'movements_stale_served');
+      expectEventsRespectSensitiveDataPolicy(observability.events);
+    });
   });
 }

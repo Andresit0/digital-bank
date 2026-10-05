@@ -48,9 +48,11 @@ class _FakeAccountsRepository implements AccountsRepository {
 
 class _FakeMovementsRepository implements MovementsRepository {
   @override
-  Future<Result<List<Movement>>> fetchMovements({
+  Future<Result<Read<List<Movement>>>> fetchMovements({
     required String accountId,
-  }) async => Success<List<Movement>>([_movement]);
+  }) async => Success<Read<List<Movement>>>(
+    Read<List<Movement>>([_movement], source: ReadSource.remote),
+  );
 }
 
 class _FakeExperienceRepository implements ExperienceRepository {

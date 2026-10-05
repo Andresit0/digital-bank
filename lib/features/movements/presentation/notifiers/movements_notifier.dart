@@ -2,6 +2,7 @@ import 'package:digital_bank/core/services/observability/observability_provider.
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/observability/observability_event.dart';
 import 'package:digital_bank/shared/observability/observability_severity.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../di/movements_providers.dart';
@@ -27,10 +28,16 @@ class MovementsNotifier extends Notifier<MovementsState> {
         .fetchMovements(accountId: accountId);
 
     result.when(
-      success: (movements) {
-        state = movements.isEmpty
+      success: (read) {
+        if (read.source == ReadSource.cache) {
+          ref.read(observabilityProvider).report(_staleServedEvent());
+          state = MovementsStale(read.data);
+          return;
+        }
+
+        state = read.data.isEmpty
             ? const MovementsEmpty()
-            : MovementsLoaded(movements);
+            : MovementsLoaded(read.data);
       },
       failure: (error) {
         ref.read(observabilityProvider).report(_loadFailedEvent(error));
@@ -50,6 +57,14 @@ class MovementsNotifier extends Notifier<MovementsState> {
       name: 'movements_load_failed',
       severity: ObservabilitySeverity.warning,
       metadata: metadata,
+    );
+  }
+
+  ObservabilityEvent _staleServedEvent() {
+    return const ObservabilityEvent(
+      name: 'movements_stale_served',
+      severity: ObservabilitySeverity.warning,
+      metadata: {'source': 'cache'},
     );
   }
 }

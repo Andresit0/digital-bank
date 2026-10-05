@@ -20,6 +20,12 @@ final class MovementsLoaded extends MovementsState {
   final List<Movement> movements;
 }
 
+final class MovementsStale extends MovementsState {
+  const MovementsStale(this.movements);
+
+  final List<Movement> movements;
+}
+
 final class MovementsEmpty extends MovementsState {
   const MovementsEmpty();
 }

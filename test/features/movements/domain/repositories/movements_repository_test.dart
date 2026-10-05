@@ -1,6 +1,7 @@
 import 'package:digital_bank/features/movements/domain/entities/movement.dart';
 import 'package:digital_bank/features/movements/domain/repositories/movements_repository.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeMovementsRepository implements MovementsRepository {
@@ -10,11 +11,13 @@ class _FakeMovementsRepository implements MovementsRepository {
   String? lastAccountId;
 
   @override
-  Future<Result<List<Movement>>> fetchMovements({
+  Future<Result<Read<List<Movement>>>> fetchMovements({
     required String accountId,
   }) async {
     lastAccountId = accountId;
-    return Success(_movements);
+    return Success(
+      Read<List<Movement>>(_movements, source: ReadSource.remote),
+    );
   }
 }
 
@@ -36,9 +39,11 @@ void main() {
       final result = await repository.fetchMovements(accountId: 'acc-1');
 
       expect(repository.lastAccountId, 'acc-1');
-      expect(result, isA<Success<List<Movement>>>());
-      expect((result as Success<List<Movement>>).data, hasLength(1));
-      expect(result.data.first, isA<Movement>());
+      expect(result, isA<Success<Read<List<Movement>>>>());
+      final read = (result as Success<Read<List<Movement>>>).data;
+      expect(read.source, ReadSource.remote);
+      expect(read.data, hasLength(1));
+      expect(read.data.first, isA<Movement>());
     });
 
     test('fetchMovements can return an empty list', () async {
@@ -46,8 +51,9 @@ void main() {
 
       final result = await repository.fetchMovements(accountId: 'acc-1');
 
-      expect(result, isA<Success<List<Movement>>>());
-      expect((result as Success<List<Movement>>).data, isEmpty);
+      expect(result, isA<Success<Read<List<Movement>>>>());
+      final read = (result as Success<Read<List<Movement>>>).data;
+      expect(read.data, isEmpty);
     });
   });
 }

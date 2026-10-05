@@ -10,6 +10,8 @@ final movementsRemoteDataSourceProvider = Provider<MovementsRemoteDataSource>(
 );
 
 final movementsRepositoryProvider = Provider<MovementsRepository>(
-  (ref) =>
-      MovementsRepositoryImpl(ref.watch(movementsRemoteDataSourceProvider)),
+  (ref) => MovementsRepositoryImpl(
+    ref.watch(movementsRemoteDataSourceProvider),
+    ref.watch(readCacheProvider),
+  ),
 );
