@@ -27,6 +27,17 @@ is stored in an in-memory session; a shared Dio interceptor attaches
 `Authorization: Bearer <token>` to protected requests. A `401` clears the
 session and returns the user to login.
 
+Current milestones:
+
+```text
+PR18 — Flutter to NestJS API Integration   Merged
+Navigation Flow Fix                        In Progress
+```
+
+Navigation preserves a back history across Home, Accounts, Movements, and
+Movement detail. The View Movements quick action opens Accounts as an
+account-selection step before Movements.
+
 ## Requirements
 
 - Flutter 3.47.4

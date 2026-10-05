@@ -57,7 +57,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     for (final account in accounts) ...[
                       AccountCard(
                         account: account,
-                        onTap: () => context.go(
+                        onTap: () => context.push(
                           Uri(
                             path: '/movements',
                             queryParameters: {'accountId': account.id},
