@@ -134,20 +134,23 @@ Authorized client
      v
 NestJS
      |
-     | firebase-admin
+     | firebase-admin (notification.title/body + data.type/movementId)
      v
 Firebase Cloud Messaging
      |
-     | notification/data message
+     | notification + data message
      v
 Android device
      |
-     +-- foreground   (onMessage)
-     +-- background   (onBackgroundMessage)
-     +-- terminated   (getInitialMessage)
+     +-- foreground   (onMessage: data only, no banner)
+     +-- background   (system banner; onMessageOpenedApp on tap)
+     +-- terminated   (system banner; getInitialMessage on launch)
            |
            v
-       Movements / Movement detail
+       Movements
+           |
+           (Movement detail by id is future work: the route resolves the
+            movement from the loaded list via state.extra)
 ```
 
 ---
@@ -220,7 +223,7 @@ Endpoints (both JWT-protected with `@Auth(ValidRoles.user)`):
 
 ```text
 POST /notifications/register   # body { token, platform }; user comes from the JWT
-POST /notifications/send       # body { userId, type, movementId }
+POST /notifications/send       # body { userId, type, movementId, title, body }
 ```
 
 - `register` is idempotent for the same (user, token).
@@ -230,12 +233,29 @@ POST /notifications/send       # body { userId, type, movementId }
 Request body (`send`):
 
 ```json
-{ "userId": "...", "type": "movement", "movementId": "..." }
+{
+  "userId": "1",
+  "type": "movement",
+  "movementId": "mov-1",
+  "title": "Salary received",
+  "body": "+$500.00 in Savings"
+}
 ```
 
-The FCM data payload contains only `type` and `movementId` (D16). `/notifications/send`
-is a demonstration/dev capability. No public endpoint may allow arbitrary
-clients to send notifications.
+`title` and `body` are required (`@IsNotEmpty`, `@MaxLength` 80 and 200). They
+are the visible notification content, so each API call defines it explicitly.
+The FCM data payload still contains only `type` and `movementId` (D16), which
+keeps the routing context separate from the display text:
+
+```json
+{
+  "notification": { "title": "<dynamic title>", "body": "<dynamic body>" },
+  "data": { "type": "movement", "movementId": "mov-1" }
+}
+```
+
+`/notifications/send` is a demonstration/dev capability. No public endpoint may
+allow arbitrary clients to send notifications.
 
 ### 5.3 Persistence
 
@@ -456,15 +476,83 @@ service account that lives outside the repository; it is never part of CI.
 
 ---
 
-## 13. Commit Plan
+## 13. Manual Validation and Useful Commands
+
+The end-to-end flow was validated on a physical Android device. Both open
+mechanisms are implemented (`onMessageOpenedApp` for background and
+`getInitialMessage` for a terminated launch); the physical validation performed
+was a background notification -> tap -> `/movements`.
+
+Rebuild the API (applies the current code and loads the Firebase credentials):
+
+```bash
+cd api
+docker compose up -d --build api
+```
+
+Obtain a demo JWT (the seed credentials are for the technical assessment only):
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"customer@example.com","password":"secret"}' \
+  | python3 -c "import sys,json;print(json.load(sys.stdin)['accessToken'])")
+```
+
+Verify the registered device installation (only a token prefix is shown on
+purpose; never print or commit the full token):
+
+```bash
+docker exec api-postgres-1 psql -U postgres -d digital_bank \
+  -c 'select id, "userCode", platform, left(token,12) from device_installation;'
+```
+
+Send a real notification with dynamic content:
+
+```bash
+curl -s -w "\nHTTP %{http_code}\n" -X POST http://localhost:3000/notifications/send \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "userId": "1",
+    "type": "movement",
+    "movementId": "mov-1",
+    "title": "Salary received",
+    "body": "+$500.00 in Savings"
+  }'
+```
+
+Expected result:
+
+```text
+HTTP 200 + Firebase messageId
+    -> Android device shows the notification
+       title: "Salary received"
+       body:  "+$500.00 in Savings"
+    -> tap
+    -> /movements
+```
+
+Security notes for this validation: no real credentials, full FCM tokens, or
+`FIREBASE_PRIVATE_KEY` values are written to the documentation; the service
+account lives outside the repository. The seed credentials
+(`customer@example.com` / `secret`) are demo values for the assessment.
+
+---
+
+## 14. Commit Plan
 
 ```text
 1 docs(external-service): define FCM integration contract
-2 test(notifications): define notification contracts
-3 feat(notifications): add Firebase messaging client
-4 feat(api): add Firebase notification delivery
-5 feat(notifications): connect notification navigation
-6 ci(firebase): validate external service integration safely
+2 docs(notifications): define FCM feature specification
+3 test(notifications): define notification contracts
+4 feat(notifications): add Firebase messaging client
+5 feat(api): add Firebase notification delivery
+6 feat(notifications): connect notification navigation
+7 ci(firebase): validate external service integration safely
+8 feat(api): pass Firebase Admin credentials via environment
+9 feat(notifications): show visible FCM notification
+10 feat(api): support custom notification content
 ```
 
 Commits represent logical units of change. Each step follows SDD then TDD, and

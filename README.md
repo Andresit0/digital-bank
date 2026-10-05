@@ -43,8 +43,10 @@ movements screen requires a selected account.
 Firebase Cloud Messaging (FCM) is integrated as the external service on
 Android. The Flutter app requests notification permission, obtains and refreshes
 the FCM registration token, and registers the device installation with the
-NestJS backend. The backend can send a movement notification through the
-Firebase Admin SDK, and tapping it navigates to Movements.
+NestJS backend. The backend sends a notification (dynamic title/body) through
+the Firebase Admin SDK while preserving routing data (`type`, `movementId`),
+and tapping the notification navigates to Movements. This flow was implemented
+and validated on a physical Android device, pending merge.
 
 ## Requirements
 
