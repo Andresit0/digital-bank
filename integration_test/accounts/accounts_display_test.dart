@@ -87,6 +87,7 @@ void main() {
 
       final accountsRequest = server.requestFor('/accounts');
       expect(accountsRequest?.method, 'GET');
+      expect(accountsRequest?.authorization, 'Bearer test-access-token');
     });
   });
 }
