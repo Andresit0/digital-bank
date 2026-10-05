@@ -33,6 +33,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-llaveSecretaDigitalBank}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-2h}
       SEED_ON_START: ${SEED_ON_START:-true}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
     ports:
       - "3000:3000"
     restart: unless-stopped

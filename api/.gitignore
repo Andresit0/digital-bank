@@ -2,6 +2,11 @@
 /dist
 /node_modules
 
+# Firebase / APNs private server credentials (never version these)
+service-account*.json
+*.firebase-adminsdk*.json
+*.p8
+
 # Logs
 logs
 *.log
