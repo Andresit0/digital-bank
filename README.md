@@ -16,10 +16,14 @@ centralized in-memory session management and Bearer authentication. Additional
 core product features are being developed incrementally using
 Specification-Driven Development (SDD) and Test-Driven Development (TDD).
 
+PR21 — Minimum Viable Onboarding is implemented: a first-run onboarding (three
+steps, Next/Skip) is shown before authentication and its completion is persisted
+locally, so the startup routing gate skips it on later launches.
+
 Implemented customer journey:
 
 ```text
-Login -> Home -> Dynamic Experience -> Accounts -> Movements
+Onboarding -> Login -> Home -> Dynamic Experience -> Accounts -> Movements
 ```
 
 The customer journey runs against the NestJS backend. Login obtains a JWT that
@@ -33,7 +37,8 @@ Current milestones:
 PR18 — Flutter to NestJS API Integration   Merged
 Navigation Flow Fix                        Merged
 PR19 — External Service Integration        Merged
-PR20 — Resilience & Degraded State         Completed
+PR20 — Resilience & Degraded State         Merged
+PR21 — Minimum Viable Onboarding           Completed
 ```
 
 Navigation preserves a back history across Home, Accounts, Movements, and
@@ -131,6 +136,7 @@ Feature specifications are maintained alongside each feature under
 - `lib/features/accounts/spec/`
 - `lib/features/movements/spec/`
 - `lib/features/experience/spec/`
+- `lib/features/onboarding/spec/`
 
 Documentation will be added progressively as the corresponding engineering decisions and implementation work are completed.
 
@@ -199,6 +205,7 @@ flutter test integration_test/accounts/accounts_navigation_test.dart
 flutter test integration_test/accounts/accounts_display_test.dart
 flutter test integration_test/movements/movements_flow_test.dart
 flutter test integration_test/experience/experience_flow_test.dart
+flutter test integration_test/onboarding/onboarding_flow_test.dart
 ```
 
 If multiple devices or simulators are available, specify the target with `-d <device-id>`.
