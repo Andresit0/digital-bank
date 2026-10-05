@@ -19,8 +19,8 @@ export class FirebaseNotificationSender implements NotificationSender {
     return messaging.send({
       token: delivery.token,
       notification: {
-        title: 'Digital Bank',
-        body: 'You have a new movement',
+        title: delivery.title,
+        body: delivery.body,
       },
       data: {
         type: delivery.type,

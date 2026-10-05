@@ -67,7 +67,13 @@ describe('Notifications E2E (HTTP -> Notifications -> PostgreSQL)', () => {
     await request(app.getHttpServer())
       .post('/notifications/send')
       .set('Authorization', bearer(token))
-      .send({ userId: '999999', type: 'movement', movementId: 'mov-1' })
+      .send({
+        userId: '999999',
+        type: 'movement',
+        movementId: 'mov-1',
+        title: 'Salary received',
+        body: '+$500.00 in Savings',
+      })
       .expect(404);
   });
 });

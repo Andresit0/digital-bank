@@ -92,19 +92,54 @@ describe('NotificationsService (unit)', () => {
       userId: '1',
       type: 'movement',
       movementId: 'mov-1',
+      title: 'Salary received',
+      body: '+$500.00 in Savings',
     });
 
     expect(sender.sent).toEqual([
-      { token: 'token-a', type: 'movement', movementId: 'mov-1' },
+      {
+        token: 'token-a',
+        type: 'movement',
+        movementId: 'mov-1',
+        title: 'Salary received',
+        body: '+$500.00 in Savings',
+      },
     ]);
     expect(result.messageId).toBe('projects/demo/messages/fake-message-id');
+  });
+
+  it('passes the custom title and body to the sender', async () => {
+    installationRepository.find.mockResolvedValue([
+      { id: 'inst-1', userCode: 1, token: 'token-a' },
+    ]);
+
+    await service.send({
+      userId: '1',
+      type: 'movement',
+      movementId: 'mov-9',
+      title: 'Payment received',
+      body: '$250.00 in Checking',
+    });
+
+    expect(sender.sent[0]).toMatchObject({
+      type: 'movement',
+      movementId: 'mov-9',
+      title: 'Payment received',
+      body: '$250.00 in Checking',
+    });
   });
 
   it('fails when the user has no registered device', async () => {
     installationRepository.find.mockResolvedValue([]);
 
     await expect(
-      service.send({ userId: '1', type: 'movement', movementId: 'mov-1' }),
+      service.send({
+        userId: '1',
+        type: 'movement',
+        movementId: 'mov-1',
+        title: 'Salary received',
+        body: '+$500.00 in Savings',
+      }),
     ).rejects.toThrow();
   });
 });

@@ -52,6 +52,8 @@ export class NotificationsService {
       token: installations[0].token,
       type: dto.type,
       movementId: dto.movementId,
+      title: dto.title,
+      body: dto.body,
     });
 
     return { messageId };

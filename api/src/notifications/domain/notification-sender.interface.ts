@@ -2,6 +2,8 @@ export interface NotificationDelivery {
   token: string;
   type: string;
   movementId: string;
+  title: string;
+  body: string;
 }
 
 export interface NotificationSender {
