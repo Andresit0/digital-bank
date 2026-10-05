@@ -425,7 +425,38 @@ Validation
 
 ---
 
-## 12. Commit Plan
+## 12. CI and Safe Validation
+
+CI validates the integration without any Firebase credential.
+
+Flutter quality gate (`flutter-ci.yml`):
+
+```text
+flutter pub get -> flutter analyze -> flutter test -> flutter build apk --debug
+```
+
+The Android debug build proves that `google-services.json`, the Google
+Services Gradle plugin, and the Firebase Android configuration compile
+reproducibly without secrets.
+
+API quality gate (`api-ci.yml`, runs only when the PR touches `api/**`):
+
+```text
+Node 24 -> npm ci -> npm run build -> npm run lint -> npm run test
+```
+
+Only unit tests run in CI. PostgreSQL-backed integration/E2E tests were
+validated locally and are intentionally not run in GitHub Actions.
+
+Secret guard: a CI step fails if any private credential is committed
+(`service-account*.json`, `*.p8`, `firebase-adminsdk*.json`), checked against
+`git ls-files` (tracked files), not the filesystem. The real FCM delivery
+(`NestJS -> Firebase Admin -> FCM -> Android`) is manual validation with a
+service account that lives outside the repository; it is never part of CI.
+
+---
+
+## 13. Commit Plan
 
 ```text
 1 docs(external-service): define FCM integration contract

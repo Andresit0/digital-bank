@@ -31,13 +31,20 @@ Current milestones:
 
 ```text
 PR18 — Flutter to NestJS API Integration   Merged
-Navigation Flow Fix                        In Progress
+Navigation Flow Fix                        Merged
+PR19 — External Service Integration        In Progress
 ```
 
 Navigation preserves a back history across Home, Accounts, Movements, and
 Movement detail. The View Movements quick action opens Accounts in an explicit
 account-selection mode (`Select an account`) before Movements, because the
 movements screen requires a selected account.
+
+Firebase Cloud Messaging (FCM) is integrated as the external service on
+Android. The Flutter app requests notification permission, obtains and refreshes
+the FCM registration token, and registers the device installation with the
+NestJS backend. The backend can send a movement notification through the
+Firebase Admin SDK, and tapping it navigates to Movements.
 
 ## Requirements
 
@@ -137,6 +144,11 @@ Documentation will be added progressively as the corresponding engineering decis
   Defines the in-memory session, the centralized Bearer authentication, the 401
   handling, and the validated integration against the NestJS backend.
 
+- [PR19 — External Service Integration](docs/architecture/pr19-external-service-integration.md)
+  Defines the Firebase Cloud Messaging integration on Android, the device
+  registration, the NestJS Firebase Admin delivery, the notification
+  navigation, and the safe CI validation without credentials.
+
 Additional documentation will be added progressively as the corresponding engineering decisions and implementation work.
 
 ### Operations
@@ -189,6 +201,18 @@ flutter test integration_test/api/real_backend_flow_test.dart \
   --dart-define=API_BASE_URL=http://localhost:3000 \
   --dart-define=RUN_REAL_API_E2E=true
 ```
+
+The notification navigation is covered by a deterministic end-to-end test:
+
+```bash
+flutter test integration_test/notifications/notification_flow_test.dart
+```
+
+CI validates the Flutter project (`flutter pub get`, `flutter analyze`,
+`flutter test`, `flutter build apk --debug`) and the NestJS API (`npm ci`,
+`npm run build`, `npm run lint`, `npm run test`) without any Firebase
+credential. A CI guard rejects committed private credentials
+(`service-account*.json`, `*.p8`).
 
 ### AI
 

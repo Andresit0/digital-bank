@@ -17,6 +17,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Reject committed Firebase/APNs secrets
+        run: |
+          if git ls-files | grep -E '(^|/)service-account.*\.json$|\.p8$|firebase-adminsdk.*\.json$'; then
+            echo "::error::Private Firebase/APNs credentials must not be committed"
+            exit 1
+          fi
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -31,3 +38,6 @@ jobs:
 
       - name: Test
         run: flutter test
+
+      - name: Build Android (debug)
+        run: flutter build apk --debug
