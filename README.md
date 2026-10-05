@@ -20,6 +20,11 @@ PR21 — Minimum Viable Onboarding is implemented: a first-run onboarding (three
 steps, Next/Skip) is shown before authentication and its completion is persisted
 locally, so the startup routing gate skips it on later launches.
 
+PR22 — Final Delivery documents the engineering delivery: AI-assisted
+development, deployment and operations, accessibility evidence, and the visual
+evidence strategy. Screenshot automation and CI artifacts are documented as a
+strategy and implemented later, not in PR22.
+
 Implemented customer journey:
 
 ```text
@@ -39,6 +44,7 @@ Navigation Flow Fix                        Merged
 PR19 — External Service Integration        Merged
 PR20 — Resilience & Degraded State         Merged
 PR21 — Minimum Viable Onboarding           Completed
+PR22 — Final Delivery                      Completed
 ```
 
 Navigation preserves a back history across Home, Accounts, Movements, and
@@ -189,6 +195,28 @@ Additional documentation will be added progressively as the corresponding engine
   Defines the CI quality gate and the operational observability and monitoring
   strategy.
 
+### Delivery
+
+- [Final Delivery](docs/delivery/README.md)
+  Defines the final delivery documentation area, the delivery pipeline, and the
+  boundary between implemented capabilities and documented strategy.
+
+- [AI-assisted Development](docs/delivery/ai-assisted-development.md)
+  Documents AI usage, the SDD/TDD workflow, human review, and the qualitative
+  impact, limits, and risks.
+
+- [Deployment and Operations](docs/delivery/deployment-and-operations.md)
+  Documents the implemented build, configuration, CI validation, and
+  observability, and the deployment, release, and rollback strategy.
+
+- [Accessibility Evidence](docs/delivery/accessibility-evidence.md)
+  Records verified, partially evidenced, and not-yet-verified accessibility
+  items.
+
+- [Visual Evidence Strategy](docs/delivery/visual-evidence-strategy.md)
+  Defines the planned customer-journey screenshots and the future
+  screenshot-to-artifact automation.
+
 ### Testing
 
 Run the unit, widget, and integration-style tests:
@@ -249,4 +277,7 @@ credential. A CI guard rejects committed private credentials
 
 ### AI
 
-Documentation of AI-assisted development, usage, impact, and validation will be added as the project progresses.
+AI-assisted development is documented in
+[AI-assisted Development](docs/delivery/ai-assisted-development.md): usage
+across the SDD/TDD workflow, human review, and the qualitative impact, limits,
+and risks.
