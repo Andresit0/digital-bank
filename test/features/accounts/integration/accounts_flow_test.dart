@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:digital_bank/core/network/dio_http_client.dart';
 import 'package:digital_bank/core/network/network_providers.dart';
+import 'package:digital_bank/core/network/read_cache.dart';
 import 'package:digital_bank/core/services/observability/observability_provider.dart';
 import 'package:digital_bank/features/accounts/domain/entities/account.dart';
 import 'package:digital_bank/features/accounts/infrastructure/datasources/accounts_remote_data_source.dart';
@@ -9,6 +10,7 @@ import 'package:digital_bank/features/accounts/presentation/accounts_state.dart'
 import 'package:digital_bank/features/accounts/presentation/notifiers/accounts_notifier.dart';
 import 'package:digital_bank/shared/error/app_error.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,7 +22,7 @@ AccountsRepositoryImpl _repositoryFor(ApiTestServer server) {
     ..httpClientAdapter = server;
   final httpClient = DioHttpClient(dio);
   final dataSource = AccountsRemoteDataSourceImpl(httpClient);
-  return AccountsRepositoryImpl(dataSource);
+  return AccountsRepositoryImpl(dataSource, ReadCache());
 }
 
 void main() {
@@ -47,12 +49,13 @@ void main() {
 
       expect(server.lastRequest?.method, 'GET');
       expect(server.lastRequest?.path, '/accounts');
-      expect(result, isA<Success<List<Account>>>());
-      final accounts = (result as Success<List<Account>>).data;
-      expect(accounts, hasLength(2));
-      expect(accounts.first, isA<Account>());
-      expect(accounts.first.type, AccountType.savings);
-      expect(accounts.last.type, AccountType.checking);
+      expect(result, isA<Success<Read<List<Account>>>>());
+      final read = (result as Success<Read<List<Account>>>).data;
+      expect(read.source, ReadSource.remote);
+      expect(read.data, hasLength(2));
+      expect(read.data.first, isA<Account>());
+      expect(read.data.first.type, AccountType.savings);
+      expect(read.data.last.type, AccountType.checking);
     });
 
     test('INT-ACC-002 maps a server error to ApiError(500)', () async {
@@ -60,8 +63,8 @@ void main() {
 
       final result = await _repositoryFor(server).fetchAccounts();
 
-      expect(result, isA<Failure<List<Account>>>());
-      final error = (result as Failure<List<Account>>).error;
+      expect(result, isA<Failure<Read<List<Account>>>>());
+      final error = (result as Failure<Read<List<Account>>>).error;
       expect(error, isA<ApiError>());
       expect((error as ApiError).statusCode, 500);
     });
@@ -71,8 +74,11 @@ void main() {
 
       final result = await _repositoryFor(server).fetchAccounts();
 
-      expect(result, isA<Failure<List<Account>>>());
-      expect((result as Failure<List<Account>>).error, isA<NetworkError>());
+      expect(result, isA<Failure<Read<List<Account>>>>());
+      expect(
+        (result as Failure<Read<List<Account>>>).error,
+        isA<NetworkError>(),
+      );
     });
 
     test('INT-ACC-004 returns an empty list for an empty response', () async {
@@ -80,8 +86,8 @@ void main() {
 
       final result = await _repositoryFor(server).fetchAccounts();
 
-      expect(result, isA<Success<List<Account>>>());
-      expect((result as Success<List<Account>>).data, isEmpty);
+      expect(result, isA<Success<Read<List<Account>>>>());
+      expect((result as Success<Read<List<Account>>>).data.data, isEmpty);
     });
 
     test(

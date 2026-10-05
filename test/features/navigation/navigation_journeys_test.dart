@@ -14,6 +14,7 @@ import 'package:digital_bank/features/movements/domain/repositories/movements_re
 import 'package:digital_bank/features/movements/presentation/screens/movement_detail_screen.dart';
 import 'package:digital_bank/features/movements/presentation/screens/movements_screen.dart';
 import 'package:digital_bank/shared/error/result.dart';
+import 'package:digital_bank/shared/read.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,8 +40,10 @@ final _movement = Movement(
 
 class _FakeAccountsRepository implements AccountsRepository {
   @override
-  Future<Result<List<Account>>> fetchAccounts() async =>
-      const Success<List<Account>>([_account]);
+  Future<Result<Read<List<Account>>>> fetchAccounts() async =>
+      const Success<Read<List<Account>>>(
+        Read<List<Account>>([_account], source: ReadSource.remote),
+      );
 }
 
 class _FakeMovementsRepository implements MovementsRepository {

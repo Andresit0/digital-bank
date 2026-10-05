@@ -10,5 +10,8 @@ final accountsRemoteDataSourceProvider = Provider<AccountsRemoteDataSource>(
 );
 
 final accountsRepositoryProvider = Provider<AccountsRepository>(
-  (ref) => AccountsRepositoryImpl(ref.watch(accountsRemoteDataSourceProvider)),
+  (ref) => AccountsRepositoryImpl(
+    ref.watch(accountsRemoteDataSourceProvider),
+    ref.watch(readCacheProvider),
+  ),
 );
