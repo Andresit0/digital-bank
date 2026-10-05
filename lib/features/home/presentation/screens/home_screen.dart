@@ -12,9 +12,9 @@ class HomeScreen extends StatelessWidget {
   void _onExperienceAction(BuildContext context, QuickActionType action) {
     switch (action) {
       case QuickActionType.viewAccounts:
-        context.go('/accounts');
+        context.push('/accounts');
       case QuickActionType.viewMovements:
-        context.go('/accounts');
+        context.push('/accounts?intent=movements');
     }
   }
 
@@ -76,7 +76,7 @@ class HomeScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () => context.go('/accounts'),
+                      onPressed: () => context.push('/accounts'),
                       icon: const Icon(
                         Icons.account_balance_wallet_outlined,
                         color: AppColors.orange,

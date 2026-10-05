@@ -9,7 +9,9 @@ import '../notifiers/accounts_notifier.dart';
 import '../widgets/account_card.dart';
 
 class AccountsScreen extends ConsumerStatefulWidget {
-  const AccountsScreen({super.key});
+  const AccountsScreen({super.key, this.selectForMovements = false});
+
+  final bool selectForMovements;
 
   @override
   ConsumerState<AccountsScreen> createState() => _AccountsScreenState();
@@ -25,10 +27,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(accountsProvider);
+    final selectForMovements = widget.selectForMovements;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const BankAppBar(title: 'My accounts'),
+      appBar: BankAppBar(
+        title: selectForMovements ? 'Select an account' : 'My accounts',
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -44,11 +49,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 AccountsFailure() => const _AccountsErrorState(),
                 AccountsLoaded(:final accounts) => ListView(
                   children: [
-                    const _AccountsHeader(),
+                    _AccountsHeader(selectForMovements: selectForMovements),
                     const SizedBox(height: 28),
-                    const Text(
+                    Text(
                       'Your accounts',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
@@ -57,7 +62,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     for (final account in accounts) ...[
                       AccountCard(
                         account: account,
-                        onTap: () => context.go(
+                        onTap: () => context.push(
                           Uri(
                             path: '/movements',
                             queryParameters: {'accountId': account.id},
@@ -78,7 +83,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
 }
 
 class _AccountsHeader extends StatelessWidget {
-  const _AccountsHeader();
+  const _AccountsHeader({required this.selectForMovements});
+
+  final bool selectForMovements;
 
   @override
   Widget build(BuildContext context) {
@@ -88,9 +95,9 @@ class _AccountsHeader extends StatelessWidget {
         color: AppColors.orange,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 24,
             backgroundColor: Colors.white,
             child: Icon(
@@ -99,19 +106,21 @@ class _AccountsHeader extends StatelessWidget {
               size: 26,
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome back',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  selectForMovements ? 'Choose your account' : 'Welcome back',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Manage your money in one place',
-                  style: TextStyle(
+                  selectForMovements
+                      ? 'Choose the account whose movements you want to view.'
+                      : 'Manage your money in one place',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
