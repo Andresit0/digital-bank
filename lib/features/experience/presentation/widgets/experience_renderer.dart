@@ -9,9 +9,14 @@ import 'promotion_section.dart';
 import 'quick_action_section.dart';
 
 class ExperienceRenderer extends ConsumerStatefulWidget {
-  const ExperienceRenderer({super.key, required this.onAction});
+  const ExperienceRenderer({
+    super.key,
+    required this.onAction,
+    this.onRetry,
+  });
 
   final ValueChanged<QuickActionType> onAction;
+  final VoidCallback? onRetry;
 
   @override
   ConsumerState<ExperienceRenderer> createState() => _ExperienceRendererState();
@@ -23,6 +28,15 @@ class _ExperienceRendererState extends ConsumerState<ExperienceRenderer> {
     super.initState();
 
     Future.microtask(() => ref.read(experienceProvider.notifier).load());
+  }
+
+  void _retry() {
+    final onRetry = widget.onRetry;
+    if (onRetry != null) {
+      onRetry();
+    } else {
+      ref.read(experienceProvider.notifier).load();
+    }
   }
 
   @override
@@ -44,10 +58,11 @@ class _ExperienceRendererState extends ConsumerState<ExperienceRenderer> {
           ),
         ),
       ),
-      ExperienceEmpty() || ExperienceFailure() => const SizedBox(
+      ExperienceEmpty() => const SizedBox(
         key: Key('experience_fallback'),
         height: 0,
       ),
+      ExperienceDegraded() => _ExperienceDegraded(onRetry: _retry),
       ExperienceLoaded(:final definition) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -71,5 +86,45 @@ class _ExperienceRendererState extends ConsumerState<ExperienceRenderer> {
           onTap: widget.onAction,
         ),
     };
+  }
+}
+
+class _ExperienceDegraded extends StatelessWidget {
+  const _ExperienceDegraded({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('experience_degraded'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.orangeSoft,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.cloud_off_outlined, color: AppColors.orange),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Some content is unavailable right now.',
+              style: TextStyle(color: AppColors.darkText),
+            ),
+          ),
+          TextButton(
+            key: const Key('experience_retry'),
+            onPressed: onRetry,
+            child: const Text(
+              'Retry',
+              style: TextStyle(color: AppColors.orange),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

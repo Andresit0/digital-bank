@@ -23,8 +23,8 @@ final class ExperienceEmpty extends ExperienceState {
   const ExperienceEmpty();
 }
 
-final class ExperienceFailure extends ExperienceState {
-  const ExperienceFailure(this.error);
+final class ExperienceDegraded extends ExperienceState {
+  const ExperienceDegraded(this.error);
 
   final ExperienceError error;
 }
