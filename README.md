@@ -10,15 +10,22 @@ Authentication, Accounts (accounts, available balances), Movements
 (transaction history and detail), and Dynamic Experience (remotely configured,
 schema-controlled experience composed on Home) are implemented and integrated
 into the application. Shared error handling, development logging, and production
-observability are implemented as cross-cutting foundations. Additional core
-product features are being developed incrementally using Specification-Driven
-Development (SDD) and Test-Driven Development (TDD).
+observability are implemented as cross-cutting foundations. The Flutter
+application consumes the NestJS backend through a shared API client with
+centralized in-memory session management and Bearer authentication. Additional
+core product features are being developed incrementally using
+Specification-Driven Development (SDD) and Test-Driven Development (TDD).
 
 Implemented customer journey:
 
 ```text
 Login -> Home -> Dynamic Experience -> Accounts -> Movements
 ```
+
+The customer journey runs against the NestJS backend. Login obtains a JWT that
+is stored in an in-memory session; a shared Dio interceptor attaches
+`Authorization: Bearer <token>` to protected requests. A `401` clears the
+session and returns the user to login.
 
 ## Requirements
 
@@ -37,6 +44,15 @@ Run the application:
 ```bash
 flutter run
 ```
+
+The API base URL is provided at build time and defaults to no value:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+`API_BASE_URL` points to the NestJS backend. The backend is not required to run
+the unit and widget test suite.
 
 ## Engineering Approach
 
@@ -105,6 +121,10 @@ Documentation will be added progressively as the corresponding engineering decis
   Defines the provider-agnostic observability seam (`IObservability`), the event
   taxonomy, the sensitive-data policy, and the Auth/Accounts reporting migration.
 
+- [PR18 — Flutter to NestJS API Integration](docs/architecture/pr18-api-integration.md)
+  Defines the in-memory session, the centralized Bearer authentication, the 401
+  handling, and the validated integration against the NestJS backend.
+
 Additional documentation will be added progressively as the corresponding engineering decisions and implementation work.
 
 ### Operations
@@ -132,6 +152,31 @@ flutter test integration_test/experience/experience_flow_test.dart
 ```
 
 If multiple devices or simulators are available, specify the target with `-d <device-id>`.
+
+The deterministic end-to-end tests run against a controlled local HTTP server and
+cover the full journey (Login -> Accounts -> Movements -> Experience). They do not
+require the NestJS backend.
+
+An optional end-to-end test runs against the real NestJS backend and is skipped
+unless a backend is reachable:
+
+```bash
+flutter test integration_test/api/real_backend_flow_test.dart \
+  --dart-define=API_BASE_URL=http://localhost:3000
+```
+
+The test probes `API_BASE_URL` (default `http://localhost:3000`). When the backend
+is not reachable the test skips; when it is reachable it runs the real
+Login -> Home -> Accounts flow.
+
+To require the real backend and fail instead of skipping, force it with a Dart
+compile-time define (not a process environment variable):
+
+```bash
+flutter test integration_test/api/real_backend_flow_test.dart \
+  --dart-define=API_BASE_URL=http://localhost:3000 \
+  --dart-define=RUN_REAL_API_E2E=true
+```
 
 ### AI
 
